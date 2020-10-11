@@ -5,7 +5,7 @@ Hardening Ubuntu 20.04
 bash <(wget -qO- https://condu.ro/install.sh)
 ```
 
-![](https://i.imgur.com/af8ZjFk.gif)
+![](https://i.imgur.com/522Kwxk.gif)
 
 ### Updates
 Keeping the system updated is vital before starting anything on your system. This will prevent people to use known vulnerabilities to enter in your system.
