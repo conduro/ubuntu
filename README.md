@@ -1,5 +1,5 @@
 # Conduro
-Bash script for hardening Ubuntu 20.04, conduro means _harden/make hard_ in Latin.
+Hardening Ubuntu 20.04
 
 ```bash
 bash <(wget -qO- https://condu.ro/install.sh)
