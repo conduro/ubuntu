@@ -77,16 +77,18 @@ echo "FallbackNTP=ntp.ubuntu.com" | sudo tee -a /etc/systemd/timesyncd.conf
 ```
 
 ### System
-This will disable system logs, hide kernel pointers and ignore empty ssh passwords
+This will disable system logs, hide kernel pointers, ignore empty ssh passwords and disable snapd.
 ```bash
 echo "PermitEmptyPasswords no" | sudo tee -a /etc/ssh/sshd_config
 
 echo "kernel.dmesg_restrict=1" | sudo tee -a /etc/sysctl.conf
 echo "kernel.kptr_restrict=2" | sudo tee -a /etc/sysctl.conf
 
-sudo service rsyslog stop
-sudo systemctl stop syslog.socket rsyslog.service
-sudo systemctl disable rsyslog
+sudo systemctl mask systemd-journald.service
+sudo systemctl stop systemd-journald.service
+
+sudo systemctl mask snapd.service
+sudo systemctl stop snapd.service
 ```
 
 ### Install Golang
@@ -100,9 +102,17 @@ sudo rm go.tar.gz
 ```
 
 ### Cleanup
-Restart modified services
+Free disk space
 ```bash
-sudo apt-get clean
+sudo apt-get remove --purge -y software-properties-common
+sudo rm -rf /usr/share/man/*
+sudo find /var/log -type f -delete
+sudo apt-get clean && sudo apt-get --purge autoremove
+```
+
+### Reload
+Reload modified services
+```bash
 sudo sysctl -p
 sudo service ssh restart
 sudo update-grub2
