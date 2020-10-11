@@ -28,7 +28,8 @@ function _cmd {
     CMD=$2
 
     # get correct line length
-    LINE="───────────────────────────────────"
+    LINE="···································"
+    # LINE="───────────────────────────────────"
     LINE=${LINE:${#DESCRIPTION}}
 
     # restore color
@@ -37,11 +38,11 @@ function _cmd {
     # check if description is given
     if test -n "$1"; then
         # print description
-        printf "  ${LBLACK}─ ${DESCRIPTION} \n${LRED}"
+        printf "  ${LBLACK} ·  ${DESCRIPTION} \n${LRED}"
         # check if for errors
         if eval "$CMD" > /dev/null; then
             # print success
-            printf "  \e[1A\e[K${LBLACK}─ ${LGREEN}${DESCRIPTION} ${LBLACK}${LINE} ${LGREEN}[✓]\n"
+            printf "  \e[1A\e[K${LGREEN} ✓  ${LGREEN}${DESCRIPTION}\n"
             return 0 # success
         fi 
         return 1 # failure
@@ -69,23 +70,16 @@ function _clearline {
 clear
 
 # print logo + information
-printf "${YELLOW}
+printf "
+${YELLOW}
   ▄▄·        ▐ ▄ ·▄▄▄▄  ▄• ▄▌▄▄▄        
  ▐█ ▌▪▪     •█▌▐███▪ ██ █▪██▌▀▄ █·▪     
  ██ ▄▄ ▄█▀▄ ▐█▐▐▌▐█· ▐█▌█▌▐█▌▐▀▀▄  ▄█▀▄ 
  ▐███▌▐█▌.▐▌██▐█▌██. ██ ▐█▄█▌▐█•█▌▐█▌.▐▌
- ·▀▀▀  ▀█▄▀▪▀▀ █▪▀▀▀▀▀•  ▀▀▀ .▀  ▀ ▀█▄▀▪ v1.0.0
+ ·▀▀▀  ▀█▄▀▪▀▀ █▪▀▀▀▀▀•  ▀▀▀ .▀  ▀ ▀█▄▀▪ ${LBLACK}v1.0.0
 
 ${LBLACK} Ubuntu 20.04 Hardening - ${YELLOW}visit https://condu.ro${RESTORE} 
-
 "
-
-# updates
-_header "Updates"
-    _cmd "update" 'sudo apt-get update -y' && \
-    _cmd "upgrade" 'sudo apt-get full-upgrade -y'
-    _cmd "autoremove" "sudo apt-get autoremove"
-    _cmd "autoclean" "sudo apt-get autoclean"
 
 # dependencies
 _header "Dependencies"
@@ -93,6 +87,11 @@ _header "Dependencies"
     _cmd "install ufw" 'sudo apt-get install ufw -y'
     _cmd "install sed" 'sudo apt-get install sed -y'
     _cmd "install git" 'sudo apt-get install git -y'
+
+# updates
+_header "Updates"
+    _cmd "update" 'sudo apt-get update -y' && \
+    _cmd "upgrade" 'sudo apt-get full-upgrade -y'
 
 # firewall
 _header "Firewall"
@@ -103,7 +102,7 @@ _header "Firewall"
     _cmd "allow outgoing" 'sudo ufw default allow outgoing' && \
     _cmd "allow 80/tcp" 'sudo ufw allow 80/tcp' && \
     _cmd "allow 443/tcp" 'sudo ufw allow 443/tcp'
-    printf "  ${YELLOW}─ Specify SSH port [default 22]: ${RESTORE}"
+    printf "  ${YELLOW} ·  Specify SSH port [default 22]: ${RESTORE}"
     read -p "" prompt
     if [[ $prompt != "" ]]; then
         _clearline
@@ -136,9 +135,7 @@ _header "Network"
     _cmd "" 'echo "GRUB_CMDLINE_LINUX_DEFAULT=\"ipv6.disable=1 quiet splash\"" | sudo tee -a /etc/default/grub'
 
     _cmd "ignore icmp echo" 'sudo sed -i "/net.ipv4.icmp_echo_ignore_/Id" /etc/sysctl.conf' && \
-    _cmd "" 'echo "net.ipv4.icmp_echo_ignore_broadcasts = 1" | sudo tee -a /etc/sysctl.conf' && \
-    _cmd "" 'echo "net.ipv4.icmp_echo_ignore_all = 1" | sudo tee -a /etc/sysctl.conf' && \
-    _cmd "" 'echo 1 | sudo tee /proc/sys/net/ipv4/icmp_echo_ignore_all'
+    _cmd "" 'echo "net.ipv4.icmp_echo_ignore_all = 1" | sudo tee -a /etc/sysctl.conf'
 
     _cmd "block syn attacks" 'sudo sed -i "/net.ipv4.tcp_max_syn_backlog/Id" /etc/sysctl.conf' && \
     _cmd "" 'sudo sed -i "/net.ipv4.tcp_synack_retries/Id" /etc/sysctl.conf' && \
@@ -159,13 +156,12 @@ _header "NTP"
 _header "System"
     _cmd "disable empty ssh pass" 'sudo sed -i "/PermitEmptyPasswords/Id" /etc/ssh/sshd_config' && \
     _cmd "" 'echo "PermitEmptyPasswords no" | sudo tee -a /etc/ssh/sshd_config'
-    _cmd "disable sysctl logs" 'sudo sed -i "/kernel.dmesg_restrict/Id" /etc/sysctl.conf' && \
-    _cmd "" 'echo "kernel.dmesg_restrict=1" | sudo tee -a /etc/sysctl.conf'
-    _cmd "disable rsyslog" 'sudo systemctl stop syslog.socket rsyslog.service' && \
-    _cmd "" 'sudo service rsyslog stop' && \
-    _cmd "" 'sudo systemctl disable rsyslog'
     _cmd "hide kernel pointers" 'sudo sed -i "/kernel.kptr_restrict/Id" /etc/sysctl.conf' && \
     _cmd "" 'echo "kernel.kptr_restrict=2" | sudo tee -a /etc/sysctl.conf'
+    _cmd "disable journal" 'sudo systemctl mask systemd-journald.service' && \
+    _cmd "" 'sudo systemctl stop systemd-journald.service'
+    _cmd "disable snapd" 'sudo systemctl mask snapd.service' && \
+    _cmd "" 'sudo systemctl stop snapd.service'
 
 # golang
 _header "Golang"
@@ -177,9 +173,15 @@ _header "Golang"
 
 # cleanup
 _header "Cleanup"
-    _cmd "apt clean" "sudo apt-get clean"
+    _cmd "purge" "sudo apt-get remove --purge -y software-properties-common"
+    _cmd "remove man" "sudo rm -rf /usr/share/man/*"
+    _cmd "delete logs" "sudo find /var/log -type f -delete"
+    _cmd "clean" "sudo apt-get clean && sudo apt-get --purge autoremove"
+
+# reload
+_header "Reload"
     _cmd "reload sysctl" 'sudo sysctl -p'
-    _cmd "realod ssh" "sudo service ssh restart"
+    _cmd "reload ssh" "sudo service ssh restart"
     _cmd "reload grub2" 'sudo update-grub2 2>&1'
     _cmd "reload timesyncd" 'sudo systemctl restart systemd-timesyncd'
 
