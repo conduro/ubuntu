@@ -68,15 +68,12 @@ function _cmd {
 clear
 
 # print logo + information
-printf "
-${YELLOW}
-  ▄▄·        ▐ ▄ ·▄▄▄▄  ▄• ▄▌▄▄▄        
- ▐█ ▌▪▪     •█▌▐███▪ ██ █▪██▌▀▄ █·▪     
- ██ ▄▄ ▄█▀▄ ▐█▐▐▌▐█· ▐█▌█▌▐█▌▐▀▀▄  ▄█▀▄ 
- ▐███▌▐█▌.▐▌██▐█▌██. ██ ▐█▄█▌▐█•█▌▐█▌.▐▌
- ·▀▀▀  ▀█▄▀▪▀▀ █▪▀▀▀▀▀•  ▀▀▀ .▀  ▀ ▀█▄▀▪ ${LBLACK}v1.0.0
-
-${LBLACK} Ubuntu 20.04 Hardening - ${YELLOW}visit https://condu.ro${RESTORE} 
+printf "${YELLOW}
+  ▄ .▄ ▄▄▄· ▄▄▄  ·▄▄▄▄  ▄▄▄ . ▐ ▄ 
+ ██▪▐█▐█ ▀█ ▀▄ █·██▪ ██ ▀▄.▀·•█▌▐█
+ ██▀▐█▄█▀▀█ ▐▀▀▄ ▐█· ▐█▌▐▀▀▪▄▐█▐▐▌
+ ██▌▐▀▐█ ▪▐▌▐█•█▌██. ██ ▐█▄▄▌██▐█▌
+ ▀▀▀ · ▀  ▀ .▀  ▀▀▀▀▀▀•  ▀▀▀ ▀▀ █▪ ${LBLACK}Ubuntu 20.04 LTS
 "
 
 # script must be run as root
@@ -174,11 +171,6 @@ _header "System"
     _cmd "" 'apt-get purge qemu-guest-agent -y' 
     _cmd "" 'apt-get purge --auto-remove qemu-guest-agent -y'
 
-    _cmd "remove policykit" 'apt-get remove policykit-1 -y'
-    _cmd "" 'apt-get autoremove policykit-1 -y' 
-    _cmd "" 'apt-get purge policykit-1 -y' 
-    _cmd "" 'apt-get autoremove --purge policykit-1 -y'
-
     _cmd "disable apt-daily" 'systemctl stop apt-daily.service'
     _cmd "" 'systemctl disable apt-daily.service' 
     _cmd "" 'systemctl stop apt-daily-upgrade.timer' 
@@ -186,12 +178,17 @@ _header "System"
     _cmd "" 'systemctl stop apt-daily.timer' 
     _cmd "" 'systemctl disable apt-daily.timer'
 
-    _cmd "disable neworkd" 'apt-get remove networkd-dispatcher -y'
-    _cmd "" 'systemctl stop systemd-networkd.service' 
-    _cmd "" 'systemctl disable systemd-networkd.service'
+    # _cmd "disable neworkd" 'apt-get remove networkd-dispatcher -y'
+    # _cmd "" 'systemctl stop systemd-networkd.service' 
+    # _cmd "" 'systemctl disable systemd-networkd.service'
 
     _cmd "disable cron" 'systemctl disable cron'
     _cmd "" 'systemctl stop cron'
+
+    _cmd "remove policykit" 'apt-get remove policykit-1 -y'
+    _cmd "" 'apt-get autoremove policykit-1 -y' 
+    _cmd "" 'apt-get purge policykit-1 -y' 
+    _cmd "" 'apt-get autoremove --purge policykit-1 -y'
 
     _cmd "remove accountsservice" 'service accounts-daemon stop'
     _cmd "" 'apt remove accountsservice -y'
@@ -200,9 +197,9 @@ _header "System"
 _header "Golang"
     _cmd "download" 'wget -q -c https://dl.google.com/go/$(curl -s https://golang.org/VERSION?m=text).linux-amd64.tar.gz -O go.tar.gz'
     _cmd "unpack" 'tar -C /usr/local -xzf go.tar.gz'
-    _cmd "export path" 'echo "export GOROOT=/usr/local/go" >> ~/.profile'
-    _cmd "" 'echo "export PATH=/usr/local/go/bin:$PATH" >> ~/.profile'
-    _cmd "reload path" 'source ~/.profile' 
+    _cmd "export path" 'echo "export GOROOT=/usr/local/go" >> /etc/profile'
+    _cmd "" 'echo "export PATH=/usr/local/go/bin:$PATH" >> /etc/profile'
+    _cmd "reload path" 'source /etc/profile' 
     _cmd "remove go.tar.gz" 'rm go.tar.gz'
 
 # cleanup
