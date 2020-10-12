@@ -6,7 +6,7 @@ This script is designed for a freshly installed **Ubuntu Server 20.04** platform
 ## Getting Started
 
 ```bash
-bash <(wget -qO- https://condu.ro/install.sh)
+wget -O - https://condu.ro/install.sh | sudo bash
 ```
 ![](https://i.imgur.com/L162OHE.gif)
 
