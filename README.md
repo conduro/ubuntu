@@ -1,5 +1,5 @@
 # Conduro 
-Conduro is the Latin translation for _Hardening_, this script will update your system/dependencies, disable unnecessary services and configure various system options. Conduro is tested on **Ubuntu 20.04 LTS**.
+Conduro is the Latin translation for _Hardening_, this script will update your system/dependencies, disable unnecessary services and configure various system options. Conduro is tested on a fresh **Ubuntu 20.04 LTS** install.
 
 ## Getting Started
 
