@@ -28,15 +28,15 @@ apt-get full-upgrade -y
 ### Firewall
 We reset all firewall rules and only add port `80`, `443` and custom SSH port ( defaults to `22` if left empty )
 ```bash
-sudo ufw disable
-sudo ufw reset
-sudo ufw logging off
-sudo ufw default deny incoming
-sudo ufw default allow outgoing
-sudo ufw allow 80/tcp
-sudo ufw allow 443/tcp
-sudo ufw allow <promt_ssh_port>/tcp
-sudo ufw --force enable
+ufw disable
+ufw reset
+ufw logging off
+ufw default deny incoming
+ufw default allow outgoing
+ufw allow 80/tcp
+ufw allow 443/tcp
+ufw allow <promt_ssh_port>/tcp
+ufw --force enable
 ```
 
 ### Network
@@ -82,30 +82,31 @@ echo "PermitEmptyPasswords no" | sudo tee -a /etc/ssh/sshd_config
 echo "kernel.dmesg_restrict=1" | sudo tee -a /etc/sysctl.conf
 echo "kernel.kptr_restrict=2" | sudo tee -a /etc/sysctl.conf
 
-sudo systemctl mask systemd-journald.service
-sudo systemctl stop systemd-journald.service
+systemctl mask systemd-journald.service
+systemctl stop systemd-journald.service
 
-sudo systemctl mask snapd.service
-sudo systemctl stop snapd.service
+systemctl mask snapd.service
+systemctl stop snapd.service
 ```
 
 ### Install Golang
 It will install the latest Golang version and add to PATH
 ```bash
-sudo wget -q -c https://dl.google.com/go/$(curl -s https://golang.org/VERSION?m=text).linux-amd64.tar.gz -O go.tar.gz
-sudo tar -C /usr/local -xzf go.tar.gz
-export PATH="/path/to/directory/go/bin/:$PATH" >> ~/.bashrc
-source ~/.bashrc
-sudo rm go.tar.gz
+wget -q -c https://dl.google.com/go/$(curl -s https://golang.org/VERSION?m=text).linux-amd64.tar.gz -O go.tar.gz
+tar -C /usr/local -xzf go.tar.gz
+echo "export GOROOT=/usr/local/go" >> /etc/profile
+echo "export PATH=/usr/local/go/bin:$PATH" >> /etc/profile
+source /etc/profile
+rm go.tar.gz
 ```
 
 ### Cleanup
 Free disk space
 ```bash
-# sudo apt-get remove --purge -y software-properties-common
-sudo rm -rf /usr/share/man/*
-sudo find /var/log -type f -delete
-# sudo apt-get clean && sudo apt-get --purge autoremove
+# apt-get remove --purge -y software-properties-common
+rm -rf /usr/share/man/*
+find /var/log -type f -delete
+# apt-get clean && apt-get --purge autoremove
 
 apt-get autoremove -y
 apt-get autoclean -y
@@ -114,9 +115,9 @@ apt-get autoclean -y
 ### Reload
 Reload modified services
 ```bash
-sudo sysctl -p
-sudo service ssh restart
-sudo update-grub2
-sudo systemctl restart systemd-timesyncd
+sysctl -p
+service ssh restart
+update-grub2
+systemctl restart systemd-timesyncd
 ```
 
