@@ -207,8 +207,7 @@ _header "Golang"
 
 # cleanup
 _header "Cleanup"
-    # _cmd "purge" 'apt-get remove --purge -y 
-    '
+    # _cmd "purge" 'apt-get remove --purge -y'
     _cmd "remove man" 'rm -rf /usr/share/man/*'
     _cmd "delete logs" 'find /var/log -type f -delete'
     _cmd "autoremove" 'apt-get autoremove -y'
