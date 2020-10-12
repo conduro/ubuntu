@@ -1,16 +1,18 @@
 # Conduro 
 Linux is well-known for being one of the most secure operating systems available. But that doesn't mean you can count on it to be as secure as possible right out of the box. Conduro (_Hardening in Latin_) will automate this process to ensure your platform is secure.
 
-This script is designed for a freshly installed **Ubuntu Server 20.04** platform.
+This script is designed to be executed on a freshly installed **Ubuntu Server 20.04** server.
 
-## Getting Started
+# Getting Started
 
 ```bash
 wget -O - https://condu.ro/install.sh | sudo bash
 ```
 ![](https://i.imgur.com/L162OHE.gif)
 
-### Dependencies
+# What does it do?
+
+#### Dependencies
 Installing and updating packages that are required for hardening.
 
 ```bash
@@ -20,7 +22,7 @@ apt-get install sed -y
 apt-get install git -y
 ```
 
-### Updates
+#### Updates
 Keeping the system updated is vital before starting anything on your system. This will prevent people to use known vulnerabilities to enter in your system.
 
 ```bash
@@ -28,7 +30,7 @@ apt-get update -y
 apt-get full-upgrade -y
 ```
 
-### Firewall
+#### Firewall
 We reset all firewall rules and only add port `80`, `443` and custom SSH port ( defaults to `22` if left empty )
 ```bash
 ufw disable
@@ -42,7 +44,7 @@ ufw allow <promt_ssh_port>/tcp
 ufw --force enable
 ```
 
-### Network
+#### Network
 We change the default nameservers to cloudflare because https://www.dnsperf.com/#!dns-resolvers
 ```bash
 echo "nameserver 1.1.1.1" | sudo tee -a /etc/resolv.conf
@@ -77,7 +79,7 @@ echo "NTP=time.cloudflare.com" | sudo tee -a /etc/systemd/timesyncd.conf
 echo "FallbackNTP=ntp.ubuntu.com" | sudo tee -a /etc/systemd/timesyncd.conf
 ```
 
-### System
+#### System
 This will disable system logs, hide kernel pointers, ignore empty ssh passwords and disable snapd.
 ```bash
 echo "PermitEmptyPasswords no" | sudo tee -a /etc/ssh/sshd_config
@@ -92,7 +94,7 @@ systemctl mask snapd.service
 systemctl stop snapd.service
 ```
 
-### Install Golang
+#### Install Golang
 It will install the latest Golang version and add to PATH
 ```bash
 wget -q -c https://dl.google.com/go/$(curl -s https://golang.org/VERSION?m=text).linux-amd64.tar.gz -O go.tar.gz
@@ -103,7 +105,7 @@ source /etc/profile
 rm go.tar.gz
 ```
 
-### Cleanup
+#### Cleanup
 Free disk space
 ```bash
 # apt-get remove --purge -y software-properties-common
@@ -115,7 +117,7 @@ apt-get autoremove -y
 apt-get autoclean -y
 ```
 
-### Reload
+#### Reload
 Reload modified services
 ```bash
 sysctl -p
