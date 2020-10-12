@@ -7,24 +7,22 @@ bash <(wget -qO- https://condu.ro/install.sh)
 
 ![](https://i.imgur.com/522Kwxk.gif)
 
-### Updates
-Keeping the system updated is vital before starting anything on your system. This will prevent people to use known vulnerabilities to enter in your system.
-
-```bash
-sudo apt-get update
-sudo apt-get full-upgrade
-sudo apt-get autoremove
-sudo apt-get autoclean
-```
-
 ### Dependencies
 Installing and updating packages that are required for hardening.
 
 ```bash
-sudo apt-get install wget
-sudo apt-get install ufw
-sudo apt-get install sed
-sudo apt-get install git
+apt-get install wget -y
+apt-get install wget -y
+apt-get install sed -y
+apt-get install git -y
+```
+
+### Updates
+Keeping the system updated is vital before starting anything on your system. This will prevent people to use known vulnerabilities to enter in your system.
+
+```bash
+apt-get update -y
+apt-get full-upgrade -y
 ```
 
 ### Firewall
@@ -104,10 +102,13 @@ sudo rm go.tar.gz
 ### Cleanup
 Free disk space
 ```bash
-sudo apt-get remove --purge -y software-properties-common
+# sudo apt-get remove --purge -y software-properties-common
 sudo rm -rf /usr/share/man/*
 sudo find /var/log -type f -delete
-sudo apt-get clean && sudo apt-get --purge autoremove
+# sudo apt-get clean && sudo apt-get --purge autoremove
+
+apt-get autoremove -y
+apt-get autoclean -y
 ```
 
 ### Reload
