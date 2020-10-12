@@ -6,7 +6,7 @@ Conduro is the Latin translation for _Hardening_, this script will update your s
 ```bash
 bash <(wget -qO- https://condu.ro/install.sh)
 ```
-![](https://i.imgur.com/522Kwxk.gif)
+![](https://i.imgur.com/L162OHE.gif)
 
 ### Dependencies
 Installing and updating packages that are required for hardening.
