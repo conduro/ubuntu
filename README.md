@@ -117,8 +117,8 @@ apt-get autoclean -y
 Reload modified services
 ```bash
 sysctl -p
-service ssh restart
 update-grub2
 systemctl restart systemd-timesyncd
+service ssh restart
 ```
 
