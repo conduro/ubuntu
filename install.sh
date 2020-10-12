@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# stop script if error
+set -e
+
+# script must be run as root
+if [[ $(id -u) -ne 0 ]] ; then echo "Please run as root" ; exit 1 ; fi
+
 # color codes
 RESTORE='\033[0m'
 
@@ -23,14 +29,9 @@ WHITE='\033[01;37m'
 
 # _cmd for handling commands
 function _cmd {
-    # set variables
-    DESCRIPTION=$1
-    CMD=$2
+    # empty err.log
+    > err.log
 
-    # get correct line length
-    LINE="···································"
-    # LINE="───────────────────────────────────"
-    LINE=${LINE:${#DESCRIPTION}}
 
     # restore color
     printf "${RESTORE}"
@@ -38,21 +39,27 @@ function _cmd {
     # check if description is given
     if test -n "$1"; then
         # print description
-        printf "  ${LBLACK} ·  ${DESCRIPTION} \n${LRED}"
+        printf "  ${LBLACK} ·  ${1} \n${LRED}"
         # check if for errors
-        if eval "$CMD" > /dev/null; then
+        if eval "$2" 1> /dev/null 2> err.log; then
             # print success
-            printf "  \e[1A\e[K${LGREEN} ✓  ${LGREEN}${DESCRIPTION}\n"
+            printf "  \e[1A\e[K${LGREEN} ✓  ${LGREEN}${1}\n"
             return 0 # success
         fi 
+        while read line; do 
+            printf "      ${line}\n"
+        done < err.log
         return 1 # failure
     fi
 
     # check if for errors
     printf "${LRED}" # potential errors should be red
-    if eval "$CMD" > /dev/null; then
+    if eval "$2" 1> /dev/null 2> err.log; then
         return 0 # success
     fi
+    while read line; do 
+        printf "      ${line}\n"
+    done < err.log
     return 1 # failure
 } 
 
@@ -88,10 +95,10 @@ _header "Dependencies"
     _cmd "install sed" 'sudo apt-get install sed -y'
     _cmd "install git" 'sudo apt-get install git -y'
 
-# updates
-_header "Updates"
-    _cmd "update" 'sudo apt-get update -y' && \
-    _cmd "upgrade" 'sudo apt-get full-upgrade -y'
+# # updates
+# _header "Updates"
+#     _cmd "update" 'sudo apt-get update -y' && \
+#     _cmd "upgrade" 'sudo apt-get full-upgrade -y'
 
 # firewall
 _header "Firewall"
@@ -156,12 +163,45 @@ _header "NTP"
 _header "System"
     _cmd "disable empty ssh pass" 'sudo sed -i "/PermitEmptyPasswords/Id" /etc/ssh/sshd_config' && \
     _cmd "" 'echo "PermitEmptyPasswords no" | sudo tee -a /etc/ssh/sshd_config'
+
     _cmd "hide kernel pointers" 'sudo sed -i "/kernel.kptr_restrict/Id" /etc/sysctl.conf' && \
     _cmd "" 'echo "kernel.kptr_restrict=2" | sudo tee -a /etc/sysctl.conf'
-    _cmd "disable journal" 'sudo systemctl mask systemd-journald.service' && \
-    _cmd "" 'sudo systemctl stop systemd-journald.service'
-    _cmd "disable snapd" 'sudo systemctl mask snapd.service' && \
-    _cmd "" 'sudo systemctl stop snapd.service'
+
+    _cmd "disable journal" 'sudo systemctl stop systemd-journald.service' && \
+    _cmd "" 'sudo systemctl mask systemd-journald.service'
+
+    _cmd "disable snapd" 'sudo systemctl stop snapd.service' && \
+    _cmd "" 'sudo systemctl mask snapd.service'
+
+    _cmd "disable multipathd" 'sudo systemctl stop multipathd 2>&1' && \
+    _cmd "" 'sudo systemctl mask multipathd'
+
+    _cmd "disable qemu-gest" 'sudo apt-get remove qemu-guest-agent -y' && \
+    _cmd "" 'sudo apt-get remove --auto-remove qemu-guest-agent -y'  && \
+    _cmd "" 'sudo apt-get purge qemu-guest-agent -y'  && \
+    _cmd "" 'sudo apt-get purge --auto-remove qemu-guest-agent -y'
+
+    _cmd "remove policykit" 'sudo apt-get remove policykit-1 -y' && \
+    _cmd "" 'sudo apt-get autoremove policykit-1 -y'  && \
+    _cmd "" 'sudo apt-get purge policykit-1 -y'  && \
+    _cmd "" 'sudo apt-get autoremove --purge policykit-1 -y'
+
+    _cmd "disable apt-daily" 'sudo systemctl stop apt-daily.service' && \
+    _cmd "" 'sudo systemctl disable apt-daily.service'  && \
+    _cmd "" 'sudo systemctl stop apt-daily-upgrade.timer'  && \
+    _cmd "" 'sudo systemctl disable apt-daily-upgrade.timer'  && \
+    _cmd "" 'sudo systemctl stop apt-daily.timer'  && \
+    _cmd "" 'sudo systemctl disable apt-daily.timer'
+
+    _cmd "disable neworkd" 'sudo apt-get remove networkd-dispatcher -y' && \
+    _cmd "" 'sudo systemctl stop systemd-networkd.service 2>&1'  && \
+    _cmd "" 'sudo systemctl disable systemd-networkd.service'
+
+    _cmd "disable cron" 'sudo systemctl disable cron' && \
+    _cmd "" 'sudo systemctl stop cron'
+
+    _cmd "remove accountsservice" 'sudo service accounts-daemon stop' && \
+    _cmd "" 'sudo apt remove accountsservice -y'
 
 # golang
 _header "Golang"
@@ -184,6 +224,9 @@ _header "Reload"
     _cmd "reload ssh" "sudo service ssh restart"
     _cmd "reload grub2" 'sudo update-grub2 2>&1'
     _cmd "reload timesyncd" 'sudo systemctl restart systemd-timesyncd'
+
+# remove err.log
+sudo rm err.log
 
 # reboot
 printf "\n${YELLOW} Do you want to reboot [Y/n]? ${RESTORE}"
