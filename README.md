@@ -8,9 +8,10 @@ This script is designed to be executed on a freshly installed **Ubuntu Server 20
 ```bash
 wget -O - https://condu.ro/install.sh | sudo bash
 ```
-![](https://i.imgur.com/L162OHE.gif)
+![](https://i.imgur.com/RvdJQjU.gif)
 
 # What does it do?
+The purpose of Conduro is to optimize and secure your system to run web applications. It does this by disabling unnecessary services, bootstrapping your firewall, secure your system settings and other things. Continue reading if you want to know exactly what's being executed.
 
 #### install dependencies
 ```bash
