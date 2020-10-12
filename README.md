@@ -1,10 +1,11 @@
 # Conduro 
 Hardening (_conduro_) Ubuntu 20.04
 
+## Getting Started
+
 ```bash
 bash <(wget -qO- https://condu.ro/install.sh)
 ```
-
 ![](https://i.imgur.com/522Kwxk.gif)
 
 ### Dependencies
