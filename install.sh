@@ -208,10 +208,11 @@ _task "configure firewall"
         _cmd 'ufw allow ${prompt}/tcp'
         _cmd 'sed -i "/Port /Id" /etc/ssh/sshd_config'
         _cmd 'echo "Port ${prompt}" | sudo tee -a /etc/ssh/sshd_config'
+        printf "${OVERWRITE}"
     else 
         _cmd 'ufw allow 22/tcp'
+        printf "${OVERWRITE}"
     fi
-    printf "${OVERWRITE}"
     _cmd 'ufw --force enable'
 
 
