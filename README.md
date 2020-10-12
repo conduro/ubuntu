@@ -1,8 +1,10 @@
 # Conduro 
 Linux is well-known for being one of the most secure operating systems available. But that doesn't mean you can count on it to be as secure as possible right out of the box. Conduro (_Hardening in Latin_) will automate this process to ensure your platform is secure.
 
+> I encourage you to look at the source code and only execute this on fresh servers to avoid overriding existing server configurations.
+
 # Getting Started
-This script is designed to be executed on a freshly installed **Ubuntu Server 20.04** server. Run the following command to bootstrap your server!
+This script is designed to be executed on a freshly installed **Ubuntu Server 20.04** server.
 
 ```bash
 wget -O - https://condu.ro/install.sh | sudo bash
