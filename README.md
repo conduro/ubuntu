@@ -1,5 +1,5 @@
 # Conduro 
-Hardening (_conduro_) Ubuntu 20.04
+Conduro is the Latin translation for _Hardening_, this script will update your system/dependencies, disable unnecessary services and configure various system options. Conduro is tested on **Ubuntu 20.04 LTS**.
 
 ## Getting Started
 
