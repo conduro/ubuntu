@@ -18,225 +18,246 @@ LBLUE='\033[01;34m'
 LPURPLE='\033[01;35m'
 LCYAN='\033[01;36m'
 WHITE='\033[01;37m'
-CLEAR='\e[1A\e[K'
+OVERWRITE='\e[1A\e[K'
+CLEAR='\033c'
 
 
 # _header colorize the given argument with spacing
-function _header {
-    printf "\n ${YELLOW}$1${RESTORE}\n"
+function _task {
+    # if _task is called while a task was set, complete the previous
+    if [[ $TASK != "" ]]; then
+        printf "${OVERWRITE}${LGREEN} [✓]  ${LGREEN}${TASK}\n"
+    fi
+    # set new task title and print
+    TASK=$1
+    printf "${LBLACK} [ ]  ${TASK} \n${LRED}"
 }
 
-# _cmd <cmd>
-# _cmd <description> <cmd>
+# _cmd performs commands with error checking
 function _cmd {
     # empty conduro.log
     > conduro.log
-
-    # restore color
-    printf "${RESTORE}"
-
-    # print title if multiple arguments are given
-    if (( $# > 1 )); then
-        # print description
-        printf "  ${LBLACK} ·  ${1} \n${LRED}"
-        # check for errors
-        if eval "$2" 1> /dev/null 2> conduro.log; then
-            # print success
-            printf "  ${CLEAR}${LGREEN} ✓  ${LGREEN}${1}\n"
-            return 0 # success
-        fi
-        printf "  ${CLEAR}${LRED} X  ${1}${LRED}\n"
-        while read line; do 
-            printf "      ${line}\n"
-        done < err.log
-        exit 1
-    fi
-
-    # check for errors
-    if eval "$1" 1> /dev/null 2> err.log; then
+    # hide stdout, on error we print and exit
+    if eval "$1" 1> /dev/null 2> conduro.log; then
         return 0 # success
     fi
-    printf "${LRED}"
+    # read error from log and add spacing
+    printf "${OVERWRITE}${LRED} [X]  ${TASK}${LRED}\n"
     while read line; do 
         printf "      ${line}\n"
-    done < err.log
+    done < conduro.log
+    printf "\n"
+    # remove log file
+    rm conduro.log
+    # exit installation
     exit 1
 } 
 
-# clear terminal
-clear
-
 # print logo + information
-printf "${YELLOW}
+printf "${CLEAR}${YELLOW}
   ▄▄·        ▐ ▄ ·▄▄▄▄  ▄• ▄▌▄▄▄        
  ▐█ ▌▪▪     •█▌▐███▪ ██ █▪██▌▀▄ █·▪     
  ██ ▄▄ ▄█▀▄ ▐█▐▐▌▐█· ▐█▌█▌▐█▌▐▀▀▄  ▄█▀▄ 
  ▐███▌▐█▌.▐▌██▐█▌██. ██ ▐█▄█▌▐█•█▌▐█▌.▐▌
  ·▀▀▀  ▀█▄▀▪▀▀ █▪▀▀▀▀▀•  ▀▀▀ .▀  ▀ ▀█▄▀▪
  ${LBLACK}Hardening ${YELLOW}Ubuntu 20.04 ${LBLACK}https://condu.ro
+ 
 "
 
 # script must be run as root
 if [[ $(id -u) -ne 0 ]] ; then printf "\n${LRED} Please run as root${RESTORE}\n\n" ; exit 1 ; fi
 
-# # dependencies
-# _header "Dependencies"
-#     _cmd "install wget" 'apt-get install wget -y'
-#     _cmd "install ufw" 'apt-get install wget -y'
-#     _cmd "install sed" 'apt-get install sed -y'
-#     _cmd "install git" 'apt-get install git -y'
+# dependencies
+_task "install dependencies"
+    _cmd 'apt-get install wget sed git -y'
 
-# # updates
-# _header "Updates"
-#     _cmd "update" 'apt-get update -y'
-#     _cmd "upgrade" 'apt-get full-upgrade -y'
+# description
+_task "update system"
+    _cmd 'apt-get update -y && apt-get full-upgrade -y'
 
-# Nameservers
-_header "Nameservers"
+# description
+_task "update nameservers"
     _cmd 'truncate -s0 /etc/resolv.conf'
-    _cmd "nameserver 1.1.1.1" 'echo "nameserver 1.1.1.1" | sudo tee -a /etc/resolv.conf'
-    _cmd "nameserver 1.0.0.1" 'echo "nameserver 1.0.0.1" | sudo tee -a /etc/resolv.conf'
+    _cmd 'echo "nameserver 1.1.1.1" | sudo tee -a /etc/resolv.conf'
+    _cmd 'echo "nameserver 1.0.0.1" | sudo tee -a /etc/resolv.conf'
 
-# Disable IPv6
-_header "Disable IPv6"
-    _cmd "net.ipv6.conf.lo.disable_ipv6      = 1" 'sed -i "/net.ipv6.conf.lo.disable_ipv6/Id" /etc/sysctl.conf'
-    _cmd "net.ipv6.conf.all.disable_ipv6     = 1" 'sed -i "/net.ipv6.conf.all.disable_ipv6/Id" /etc/sysctl.conf'
-    _cmd "net.ipv6.conf.default.disable_ipv6 = 1" 'sed -i "/net.ipv6.conf.default.disable_ipv6/Id" /etc/sysctl.conf'
-    _cmd 'echo "net.ipv6.conf.lo.disable_ipv6 = 1" | sudo tee -a /etc/sysctl.conf'
-    _cmd 'echo "net.ipv6.conf.all.disable_ipv6 = 1" | sudo tee -a /etc/sysctl.conf'
-    _cmd 'echo "net.ipv6.conf.default.disable_ipv6 = 1" | sudo tee -a /etc/sysctl.conf'
+# description
+_task "update ntp server"
+    _cmd 'sed -i "/NTP=/Id" /etc/systemd/timesyncd.conf'
+    _cmd 'echo "NTP=time.cloudflare.com" | sudo tee -a /etc/systemd/timesyncd.conf'
+    _cmd 'echo "FallbackNTP=ntp.ubuntu.com" | sudo tee -a /etc/systemd/timesyncd.conf'
 
-    _cmd "update ufw" 'sed -i "/ipv6=/Id" /etc/default/ufw'
-    _cmd 'echo "IPV6=no" | sudo tee -a /etc/default/ufw'
 
-    _cmd "update grub" 'sed -i "/GRUB_CMDLINE_LINUX_DEFAULT=/Id" /etc/default/grub'
-    _cmd 'echo "GRUB_CMDLINE_LINUX_DEFAULT=\"ipv6.disable=1 quiet splash\"" | sudo tee -a /etc/default/grub'
-
-# Disable ICMP echo
-_header "Disable ICMP echo"
-    _cmd "net.ipv4.icmp_echo_ignore_all = 1" 'sed -i "/net.ipv4.icmp_echo_ignore_/Id" /etc/sysctl.conf'
-    _cmd 'echo "net.ipv4.icmp_echo_ignore_all = 1" | sudo tee -a /etc/sysctl.conf'
-
-# Block SYN attacks
-_header "Block SYN attacks"
-    _cmd "net.ipv4.tcp_max_syn_backlog = 2048"  'sed -i "/net.ipv4.tcp_max_syn_backlog/Id" /etc/sysctl.conf'
-    _cmd "net.ipv4.tcp_synack_retries  = 2"     'sed -i "/net.ipv4.tcp_synack_retries/Id" /etc/sysctl.conf'
-    _cmd "net.ipv4.tcp_syn_retries     = 5"     'sed -i "/net.ipv4.tcp_syn_retries/Id" /etc/sysctl.conf'
-    _cmd "net.ipv4.tcp_syncookies      = 0"     'sed -i "/net.ipv4.tcp_syncookies/Id" /etc/sysctl.conf'
+# description
+_task "block syn attacks"
+    _cmd 'sed -i "/net.ipv4.tcp_max_syn_backlog/Id" /etc/sysctl.conf'
+    _cmd 'sed -i "/net.ipv4.tcp_synack_retries/Id" /etc/sysctl.conf'
+    _cmd 'sed -i "/net.ipv4.tcp_syn_retries/Id" /etc/sysctl.conf'
+    _cmd 'sed -i "/net.ipv4.tcp_syncookies/Id" /etc/sysctl.conf'
     _cmd 'echo "net.ipv4.tcp_max_syn_backlog = 2048" | sudo tee -a /etc/sysctl.conf'
     _cmd 'echo "net.ipv4.tcp_synack_retries = 2" | sudo tee -a /etc/sysctl.conf'
     _cmd 'echo "net.ipv4.tcp_syn_retries = 5" | sudo tee -a /etc/sysctl.conf'
     _cmd 'echo "net.ipv4.tcp_syncookies = 1" | sudo tee -a /etc/sysctl.conf'
 
-# ntp
-_header "NTP Server"
-    _cmd "remove default" 'sed -i "/NTP=/Id" /etc/systemd/timesyncd.conf'
-    _cmd "add time.cloudflare.com" 'echo "NTP=time.cloudflare.com" | sudo tee -a /etc/systemd/timesyncd.conf'
-    _cmd 'echo "FallbackNTP=ntp.ubuntu.com" | sudo tee -a /etc/systemd/timesyncd.conf'
-
-# system
-_header "System"
-    _cmd "hide kernel pointers" 'sed -i "/kernel.kptr_restrict/Id" /etc/sysctl.conf'
+# description
+_task "hide kernel pointers"
+    _cmd 'sed -i "/kernel.kptr_restrict/Id" /etc/sysctl.conf'
     _cmd 'echo "kernel.kptr_restrict=2" | sudo tee -a /etc/sysctl.conf'
 
-    _cmd "disable empty ssh pass" 'sed -i "/PermitEmptyPasswords/Id" /etc/ssh/sshd_config'
+# description
+_task "disable empty ssh passwords"
+    _cmd 'sed -i "/PermitEmptyPasswords/Id" /etc/ssh/sshd_config'
     _cmd 'echo "PermitEmptyPasswords no" | sudo tee -a /etc/ssh/sshd_config'
 
-    _cmd "disable journal" 'systemctl stop systemd-journald.service'
+# description
+_task "disable ipv6"
+    _cmd 'sed -i "/net.ipv6.conf.lo.disable_ipv6/Id" /etc/sysctl.conf'
+    _cmd 'sed -i "/net.ipv6.conf.all.disable_ipv6/Id" /etc/sysctl.conf'
+    _cmd 'sed -i "/net.ipv6.conf.default.disable_ipv6/Id" /etc/sysctl.conf'
+    _cmd 'echo "net.ipv6.conf.lo.disable_ipv6 = 1" | sudo tee -a /etc/sysctl.conf'
+    _cmd 'echo "net.ipv6.conf.all.disable_ipv6 = 1" | sudo tee -a /etc/sysctl.conf'
+    _cmd 'echo "net.ipv6.conf.default.disable_ipv6 = 1" | sudo tee -a /etc/sysctl.conf'
+
+    _cmd 'sed -i "/ipv6=/Id" /etc/default/ufw'
+    _cmd 'echo "IPV6=no" | sudo tee -a /etc/default/ufw'
+
+    _cmd 'sed -i "/GRUB_CMDLINE_LINUX_DEFAULT=/Id" /etc/default/grub'
+    _cmd 'echo "GRUB_CMDLINE_LINUX_DEFAULT=\"ipv6.disable=1 quiet splash\"" | sudo tee -a /etc/default/grub'
+
+# description
+_task "disable icmp pings"
+    _cmd 'sed -i "/net.ipv4.icmp_echo_ignore_/Id" /etc/sysctl.conf'
+    _cmd 'echo "net.ipv4.icmp_echo_ignore_all = 1" | sudo tee -a /etc/sysctl.conf'
+
+# description
+_task "disable journal"
+    _cmd 'systemctl stop systemd-journald.service'
+    _cmd 'systemctl disable systemd-journald.service'
     _cmd 'systemctl mask systemd-journald.service'
 
-    _cmd "disable snapd" 'systemctl stop snapd.service'
+# description
+_task "disable snapd"
+    _cmd 'systemctl stop snapd.service'
+    _cmd 'systemctl disable snapd.service'
     _cmd 'systemctl mask snapd.service'
 
-    _cmd "disable multipathd" 'systemctl stop multipathd'
+# description
+_task "disable multipathd"
+    _cmd 'systemctl stop multipathd'
+    _cmd 'systemctl disable multipathd'
     _cmd 'systemctl mask multipathd'
 
-    _cmd "disable qemu-gest" 'apt-get remove qemu-guest-agent -y'
+# description
+_task "disable cron"
+    _cmd 'systemctl stop cron'
+    _cmd 'systemctl disable cron'
+    _cmd 'systemctl mask cron'
+
+# description
+_task "disable fwupd"
+    _cmd 'systemctl stop fwupd.service'
+    _cmd 'systemctl disable fwupd.service'
+    _cmd 'systemctl mask fwupd.service'
+
+# description
+_task "disable rsyslog"
+    _cmd 'systemctl stop rsyslog.service'
+    _cmd 'systemctl disable rsyslog.service'
+    _cmd 'systemctl mask rsyslog.service'
+
+# description
+_task "disable qemu-guest"
+    _cmd 'apt-get remove qemu-guest-agent -y'
     _cmd 'apt-get remove --auto-remove qemu-guest-agent -y' 
     _cmd 'apt-get purge qemu-guest-agent -y' 
     _cmd 'apt-get purge --auto-remove qemu-guest-agent -y'
 
-    _cmd "disable apt-daily" 'systemctl stop apt-daily.service'
-    _cmd 'systemctl disable apt-daily.service' 
-    _cmd 'systemctl stop apt-daily-upgrade.timer' 
-    _cmd 'systemctl disable apt-daily-upgrade.timer' 
-    _cmd 'systemctl stop apt-daily.timer' 
-    _cmd 'systemctl disable apt-daily.timer'
-
-    # _cmd "disable neworkd" 'apt-get remove networkd-dispatcher -y'
-    # _cmd 'systemctl stop systemd-networkd.service' 
-    # _cmd 'systemctl disable systemd-networkd.service'
-
-    _cmd "disable cron" 'systemctl disable cron'
-    _cmd 'systemctl stop cron'
-
-    _cmd "remove policykit" 'apt-get remove policykit-1 -y'
+# description
+_task "disable policykit"
+    _cmd 'apt-get remove policykit-1 -y'
     _cmd 'apt-get autoremove policykit-1 -y' 
     _cmd 'apt-get purge policykit-1 -y' 
     _cmd 'apt-get autoremove --purge policykit-1 -y'
 
-    _cmd "remove accountsservice" 'service accounts-daemon stop'
+# description
+_task "disable accountsservice"
+    _cmd 'service accounts-daemon stop'
     _cmd 'apt remove accountsservice -y'
 
-printf "\n${YELLOW} Do you want to install Golang [Y/n]? ${RESTORE}"
-read -p "" prompt
-if [[ $prompt == "y" || $prompt == "Y" ]]; then
-    printf "${CLEAR}${CLEAR}"
-    # golang
-    _header "Golang"
-        _cmd "download" 'wget -q -c https://dl.google.com/go/$(curl -s https://golang.org/VERSION?m=text).linux-amd64.tar.gz -O go.tar.gz'
-        _cmd "unpack" 'tar -C /usr/local -xzf go.tar.gz'
-        _cmd "export path" 'echo "export GOROOT=/usr/local/go" >> /etc/profile'
-        _cmd 'echo "export PATH=/usr/local/go/bin:$PATH" >> /etc/profile'
-        _cmd "reload path" 'source /etc/profile' 
-        _cmd "remove go.tar.gz" 'rm go.tar.gz'
-fi
+# description
+_task "install golang"
+    _cmd 'wget -q -c https://dl.google.com/go/$(curl -s https://golang.org/VERSION?m=text).linux-amd64.tar.gz -O go.tar.gz'
+    _cmd 'tar -C /usr/local -xzf go.tar.gz'
+    _cmd "export path" 'echo "export GOROOT=/usr/local/go" >> /etc/profile'
+    _cmd 'echo "export PATH=/usr/local/go/bin:$PATH" >> /etc/profile'
+    _cmd 'source /etc/profile' 
+    _cmd 'rm go.tar.gz'
 
 # firewall
-_header "Firewall"
-    _cmd "disable ufw" 'ufw disable'
-    _cmd "reset rules" 'echo "y" | sudo ufw reset'
-    _cmd "disable logging" 'ufw logging off'
-    _cmd "deny incoming" 'ufw default deny incoming'
-    _cmd "allow outgoing" 'ufw default allow outgoing'
-    _cmd "allow 80/tcp" 'ufw allow 80/tcp'
-    _cmd "allow 443/tcp" 'ufw allow 443/tcp'
-    printf "  ${YELLOW} ·  Specify SSH port [default 22]: ${RESTORE}"
+_task "configure firewall"
+    _cmd 'ufw disable'
+    _cmd 'echo "y" | sudo ufw reset'
+    _cmd 'ufw logging off'
+    _cmd 'ufw default deny incoming'
+    _cmd 'ufw default allow outgoing'
+    _cmd 'ufw allow 80/tcp'
+    _cmd 'ufw allow 443/tcp'
+    printf "${YELLOW} [?]  specify ssh port [leave empty for 22]: ${RESTORE}"
     read -p "" prompt
     if [[ $prompt != "" ]]; then
-        _cmd "${CLEAR}allow ${prompt}/tcp" 'ufw allow ${prompt}/tcp'
-        _cmd "update sshd config" 'sed -i "/Port /Id" /etc/ssh/sshd_config'
+        _cmd 'ufw allow ${prompt}/tcp'
+        _cmd 'sed -i "/Port /Id" /etc/ssh/sshd_config'
         _cmd 'echo "Port ${prompt}" | sudo tee -a /etc/ssh/sshd_config'
     else 
-        _cmd "${CLEAR}allow 22/tcp" 'ufw allow 22/tcp'
+        _cmd 'ufw allow 22/tcp'
     fi
-    _cmd "enable ufw" 'ufw --force enable'
+    printf "${OVERWRITE}"
+    _cmd 'ufw --force enable'
 
 
-# cleanup
-_header "Cleanup"
+# description
+_task "delete man"
+    _cmd 'rm -rf /usr/share/man/*'
+
+# description
+_task "delete system logs"
+    _cmd 'find /var/log -type f -delete'
+
+# description
+_task "autoremove"
+    _cmd 'apt-get autoremove -y'
+    _cmd 'apt-get autoclean -y'
     # _cmd "purge" 'apt-get remove --purge -y'
-    _cmd "remove man" 'rm -rf /usr/share/man/*'
-    _cmd "delete logs" 'find /var/log -type f -delete'
-    _cmd "autoremove" 'apt-get autoremove -y'
-    _cmd "autoclean" 'apt-get autoclean -y'
     # _cmd "clean" 'apt-get clean && sudo apt-get --purge autoremove -y'
 
-# reload
-_header "Reload"
-    _cmd "reload sysctl" 'sysctl -p'
-    _cmd "reload grub2" 'update-grub2'
-    _cmd "reload timesyncd" 'systemctl restart systemd-timesyncd'
-    _cmd "reload ssh" 'service ssh restart'
+# description
+_task "reload system"
+    _cmd 'sysctl -p'
+
+# description
+_task "reload grub"
+    _cmd 'update-grub2'
+
+# description
+_task "reload timesync"
+    _cmd 'systemctl restart systemd-timesyncd'
+
+# description
+_task "reload ssh"
+    _cmd 'service ssh restart'
+
+# finish last task
+printf "${OVERWRITE}${LGREEN} [✓]  ${LGREEN}${TASK}\n"
 
 # remove conduro.log
-sudo rm conduro.log
+rm conduro.log
+
 
 # reboot
 printf "\n${YELLOW} Do you want to reboot [Y/n]? ${RESTORE}"
 read -p "" prompt
 if [[ $prompt == "y" || $prompt == "Y" ]]; then
-    sudo reboot
+    reboot
 fi
 
 # exit
