@@ -188,7 +188,7 @@ _task "disable accountsservice"
 _task "install golang"
     _cmd 'wget -q -c https://dl.google.com/go/$(curl -s https://golang.org/VERSION?m=text).linux-amd64.tar.gz -O go.tar.gz'
     _cmd 'tar -C /usr/local -xzf go.tar.gz'
-    _cmd "export path" 'echo "export GOROOT=/usr/local/go" >> /etc/profile'
+    _cmd 'echo "export GOROOT=/usr/local/go" >> /etc/profile'
     _cmd 'echo "export PATH=/usr/local/go/bin:$PATH" >> /etc/profile'
     _cmd 'source /etc/profile' 
     _cmd 'rm go.tar.gz'
