@@ -1,5 +1,5 @@
-# Conduro
-Hardening Ubuntu 20.04
+# Conduro 
+Hardening (_conduro_) Ubuntu 20.04
 
 ```bash
 bash <(wget -qO- https://condu.ro/install.sh)
