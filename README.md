@@ -1,5 +1,7 @@
 # Conduro 
-Conduro is the Latin translation for _Hardening_, this script will update your system/dependencies, disable unnecessary services and configure various system options. Conduro is tested on a fresh **Ubuntu 20.04 LTS** install.
+Linux is well-known for being one of the most secure operating systems available. But that doesn't mean you can count on it to be as secure as possible right out of the box. Conduro (_Hardening in Latin_) will automate this process to ensure your platform is secure.
+
+This script is designed for a freshly installed **Ubuntu Server 20.04** platform.
 
 ## Getting Started
 
