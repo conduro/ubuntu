@@ -200,13 +200,15 @@ _header "System"
 _header "Golang"
     _cmd "download" 'wget -q -c https://dl.google.com/go/$(curl -s https://golang.org/VERSION?m=text).linux-amd64.tar.gz -O go.tar.gz'
     _cmd "unpack" 'tar -C /usr/local -xzf go.tar.gz'
-    _cmd "export path" 'export PATH="/path/to/directory/go/bin/:$PATH" >> ~/.bashrc'
-    _cmd "reload path" 'source ~/.bashrc' 
+    _cmd "export path" 'echo "export GOROOT=/usr/local/go" >> ~/.profile'
+    _cmd "" 'echo "export PATH=/usr/local/go/bin:$PATH" >> ~/.profile'
+    _cmd "reload path" 'source ~/.profile' 
     _cmd "remove go.tar.gz" 'rm go.tar.gz'
 
 # cleanup
 _header "Cleanup"
-    # _cmd "purge" 'apt-get remove --purge -y software-properties-common'
+    # _cmd "purge" 'apt-get remove --purge -y 
+    '
     _cmd "remove man" 'rm -rf /usr/share/man/*'
     _cmd "delete logs" 'find /var/log -type f -delete'
     _cmd "autoremove" 'apt-get autoremove -y'
@@ -216,9 +218,9 @@ _header "Cleanup"
 # reload
 _header "Reload"
     _cmd "reload sysctl" 'sysctl -p'
-    _cmd "reload ssh" 'service ssh restart'
     _cmd "reload grub2" 'update-grub2'
     _cmd "reload timesyncd" 'systemctl restart systemd-timesyncd'
+    _cmd "reload ssh" 'service ssh restart'
 
 # remove err.log
 sudo rm err.log
