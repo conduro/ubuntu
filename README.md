@@ -14,7 +14,7 @@ wget -O - https://condu.ro/install.sh | sudo bash
 # What does it do?
 The purpose of Conduro is to optimize and secure your system to run web applications. It does this by disabling unnecessary services, bootstrapping your firewall, secure your system settings and other things. Continue reading if you want to know exactly what's being executed.
 
-#### install dependencies
+#### update dependencies
 ```bash
 apt-get install wget sed git -y
 ```
@@ -25,132 +25,9 @@ Keeping the system updated is vital before starting anything on your system. Thi
 apt-get update -y && apt-get full-upgrade -y
 ```
 
-#### update nameservers
-We change the default nameservers to cloudflare because https://www.dnsperf.com/#!dns-resolvers
+#### update golang
 ```bash
-truncate -s0 /etc/resolv.conf
-echo "nameserver 1.1.1.1" | sudo tee -a /etc/resolv.conf
-echo "nameserver 1.0.0.1" | sudo tee -a /etc/resolv.conf
-```
-#### update ntp server
-```bash
-sed -i "/NTP=/Id" /etc/systemd/timesyncd.conf
-echo "NTP=time.cloudflare.com" | sudo tee -a /etc/systemd/timesyncd.conf
-echo "FallbackNTP=ntp.ubuntu.com" | sudo tee -a /etc/systemd/timesyncd.conf
-```
-
-#### block syn attacks
-```bash
-sed -i "/net.ipv4.tcp_max_syn_backlog/Id" /etc/sysctl.conf
-sed -i "/net.ipv4.tcp_synack_retries/Id" /etc/sysctl.conf
-sed -i "/net.ipv4.tcp_syn_retries/Id" /etc/sysctl.conf
-sed -i "/net.ipv4.tcp_syncookies/Id" /etc/sysctl.conf
-echo "net.ipv4.tcp_max_syn_backlog = 2048" | sudo tee -a /etc/sysctl.conf
-echo "net.ipv4.tcp_synack_retries = 2" | sudo tee -a /etc/sysctl.conf
-echo "net.ipv4.tcp_syn_retries = 5" | sudo tee -a /etc/sysctl.conf
-echo "net.ipv4.tcp_syncookies = 1" | sudo tee -a /etc/sysctl.conf
-```
-
-#### hide kernel pointers
-```bash
-sed -i "/kernel.kptr_restrict/Id" /etc/sysctl.conf
-echo "kernel.kptr_restrict=2" | sudo tee -a /etc/sysctl.conf
-```
-
-#### disable empty ssh passwords
-```bash
-sed -i "/PermitEmptyPasswords/Id" /etc/ssh/sshd_config
-echo "PermitEmptyPasswords no" | sudo tee -a /etc/ssh/sshd_config
-```
-
-#### disable ipv6
-```bash
-sed -i "/net.ipv6.conf.lo.disable_ipv6/Id" /etc/sysctl.conf
-sed -i "/net.ipv6.conf.all.disable_ipv6/Id" /etc/sysctl.conf
-sed -i "/net.ipv6.conf.default.disable_ipv6/Id" /etc/sysctl.conf
-echo "net.ipv6.conf.lo.disable_ipv6 = 1" | sudo tee -a /etc/sysctl.conf
-echo "net.ipv6.conf.all.disable_ipv6 = 1" | sudo tee -a /etc/sysctl.conf
-echo "net.ipv6.conf.default.disable_ipv6 = 1" | sudo tee -a /etc/sysctl.conf
-
-sed -i "/ipv6=/Id" /etc/default/ufw
-echo "IPV6=no" | sudo tee -a /etc/default/ufw
-
-sed -i "/GRUB_CMDLINE_LINUX_DEFAULT=/Id" /etc/default/grub
-echo "GRUB_CMDLINE_LINUX_DEFAULT=\"ipv6.disable=1 quiet splash\"" | sudo tee -a /etc/default/grub
-```
-
-#### disable icmp pings
-```bash
-sed -i "/net.ipv4.icmp_echo_ignore_/Id" /etc/sysctl.conf
-echo "net.ipv4.icmp_echo_ignore_all = 1" | sudo tee -a /etc/sysctl.conf
-```
-
-#### disable journal
-```bash
-systemctl stop systemd-journald.service
-systemctl disable systemd-journald.service
-systemctl mask systemd-journald.service
-```
-
-#### disable snapd
-```bash
-systemctl stop snapd.service
-systemctl disable snapd.service
-systemctl mask snapd.service
-```
-
-#### disable multipathd
-```bash
-systemctl stop multipathd
-systemctl disable multipathd
-systemctl mask multipathd
-```
-
-#### disable cron
-```bash
-systemctl stop cron
-systemctl disable cron
-systemctl mask cron
-```
-
-#### disable fwupd
-```bash
-systemctl stop fwupd.service
-systemctl disable fwupd.service
-systemctl mask fwupd.service
-```
-
-#### disable rsyslog
-```bash
-systemctl stop rsyslog.service
-systemctl disable rsyslog.service
-systemctl mask rsyslog.service
-```
-
-#### disable qemu-guest
-```bash
-apt-get remove qemu-guest-agent -y
-apt-get remove --auto-remove qemu-guest-agent -y
-apt-get purge qemu-guest-agent -y
-apt-get purge --auto-remove qemu-guest-agent -y
-```
-
-#### disable policykit
-```bash
-apt-get remove policykit-1 -y
-apt-get autoremove policykit-1 -y
-apt-get purge policykit-1 -y
-apt-get autoremove --purge policykit-1 -y
-```
-
-#### disable accountsservice
-```bash
-service accounts-daemon stop
-apt remove accountsservice -y
-```
-
-#### install golang
-```bash
+rm -rf /usr/local/go
 wget -q -c https://dl.google.com/go/$(curl -s https://golang.org/VERSION?m=text).linux-amd64.tar.gz -O go.tar.gz
 tar -C /usr/local -xzf go.tar.gz
 echo "export GOROOT=/usr/local/go" >> /etc/profile
@@ -159,7 +36,128 @@ source /etc/profile
 rm go.tar.gz
 ```
 
-#### configure firewall
+#### update nameservers
+We change the default nameservers to cloudflare because https://www.dnsperf.com/#!dns-resolvers
+```bash
+truncate -s0 /etc/resolv.conf
+echo "nameserver 1.1.1.1" | sudo tee -a /etc/resolv.conf
+echo "nameserver 1.0.0.1" | sudo tee -a /etc/resolv.conf
+```
+#### update ntp servers
+```bash
+truncate -s0 /etc/systemd/timesyncd.conf
+echo "[Time]" | sudo tee -a /etc/systemd/timesyncd.conf
+echo "NTP=time.cloudflare.com" | sudo tee -a /etc/systemd/timesyncd.conf
+echo "FallbackNTP=ntp.ubuntu.com" | sudo tee -a /etc/systemd/timesyncd.conf
+```
+
+#### update sysctl.conf
+```conf
+# IP Spoofing protection
+net.ipv4.conf.all.rp_filter = 1
+net.ipv4.conf.default.rp_filter = 1
+
+# Ignore ICMP broadcast requests
+net.ipv4.icmp_echo_ignore_broadcasts = 1
+
+# Disable source packet routing
+net.ipv4.conf.all.accept_source_route = 0
+net.ipv6.conf.all.accept_source_route = 0 
+net.ipv4.conf.default.accept_source_route = 0
+net.ipv6.conf.default.accept_source_route = 0
+
+# Ignore send redirects
+net.ipv4.conf.all.send_redirects = 0
+net.ipv4.conf.default.send_redirects = 0
+
+# Block SYN attacks
+net.ipv4.tcp_syncookies = 1
+net.ipv4.tcp_max_syn_backlog = 2048
+net.ipv4.tcp_synack_retries = 2
+net.ipv4.tcp_syn_retries = 5
+
+# Log Martians
+net.ipv4.conf.all.log_martians = 1
+net.ipv4.icmp_ignore_bogus_error_responses = 1
+
+# Ignore ICMP redirects
+net.ipv4.conf.all.accept_redirects = 0
+net.ipv6.conf.all.accept_redirects = 0
+net.ipv4.conf.default.accept_redirects = 0 
+net.ipv6.conf.default.accept_redirects = 0
+
+# Ignore Directed pings
+net.ipv4.icmp_echo_ignore_all = 1
+
+# Disable IPv6
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+net.ipv6.conf.lo.disable_ipv6 = 1
+
+# Hide kernel pointers
+kernel.kptr_restrict = 2
+
+# Enable panic on OOM
+vm.panic_on_oom = 1
+
+# Reboot kernel ten seconds after OOM
+kernel.panic = 10
+```
+
+#### update sshd_config
+```conf
+# To disable tunneled clear text passwords, change to no here!
+PasswordAuthentication yes
+
+# Depending on your 2FA option, you may need to enable some of these options, but they should be disabled by default
+ChallengeResponseAuthentication no
+PasswordAuthentication no
+
+# Allow client to pass locale environment variables
+AcceptEnv LANG LC_*
+
+# Disable connection multiplexing which can be used to bypass authentication
+MaxSessions 1
+
+# Block client 10 minutes after 3 failed login attempts
+MaxAuthTries 3
+LoginGraceTime 10
+
+# Do not allow empty passwords
+PermitEmptyPasswords no
+
+# Enable PAM authentication
+UsePAM yes
+
+# Disable Kerberos based authentication
+KerberosAuthentication no
+KerberosGetAFSToken no
+KerberosOrLocalPasswd no
+KerberosTicketCleanup yes
+GSSAPIAuthentication no
+GSSAPICleanupCredentials yes
+
+# Disable user environment forwarding
+X11Forwarding no
+AllowTcpForwarding no
+AllowAgentForwarding no
+PermitUserRC no
+PermitUserEnvironment no
+
+# We want to log all activity
+LogLevel INFO
+SyslogFacility AUTHPRIV
+
+# What messages do you want to present your users when they log in?
+Banner none
+PrintMotd no
+PrintLastLog yes
+
+# override default of no subsystems
+Subsystem sftp  /usr/lib/openssh/sftp-server
+```
+
+#### update firewall
 ```bash
 ufw disable
 echo "y" | sudo ufw reset
@@ -179,14 +177,31 @@ ufw allow 443/tcp
 ufw --force enable
 ```
 
-#### delete man
+#### disable ipv6
 ```bash
-rm -rf /usr/share/man/*
+sed -i "/ipv6=/Id" /etc/default/ufw
+echo "IPV6=no" | sudo tee -a /etc/default/ufw
+
+sed -i "/GRUB_CMDLINE_LINUX_DEFAULT=/Id" /etc/default/grub
+echo "GRUB_CMDLINE_LINUX_DEFAULT=\"ipv6.disable=1 quiet splash\"" | sudo tee -a /etc/default/grub
+```
+
+
+#### disable system logging
+```bash
+systemctl stop systemd-journald.service
+systemctl disable systemd-journald.service
+systemctl mask systemd-journald.service
+
+systemctl stop rsyslog.service
+systemctl disable rsyslog.service
+systemctl mask rsyslog.service
 ```
 
 #### delete system logs
 ```bash
 find /var/log -type f -delete
+rm -rf /usr/share/man/*
 ```
 
 #### autoremove
@@ -198,19 +213,7 @@ apt-get autoclean -y
 #### reload system
 ```bash
 sysctl -p
-```
-
-#### reload grub
-```bash
 update-grub2
-```
-
-#### reload timesync
-```bash
 systemctl restart systemd-timesyncd
-```
-
-#### reload ssh
-```bash
 service ssh restart
 ```
