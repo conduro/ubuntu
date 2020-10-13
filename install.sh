@@ -19,8 +19,6 @@ LPURPLE='\033[01;35m'
 LCYAN='\033[01;36m'
 WHITE='\033[01;37m'
 OVERWRITE='\e[1A\e[K'
-CLEAR='\033c'
-
 
 # _header colorize the given argument with spacing
 function _task {
@@ -53,8 +51,10 @@ function _cmd {
     exit 1
 } 
 
+clear
+
 # print logo + information
-printf "${CLEAR}${YELLOW}
+printf "${YELLOW}
   ▄▄·        ▐ ▄ ·▄▄▄▄  ▄• ▄▌▄▄▄        
  ▐█ ▌▪▪     •█▌▐███▪ ██ █▪██▌▀▄ █·▪     
  ██ ▄▄ ▄█▀▄ ▐█▐▐▌▐█· ▐█▌█▌▐█▌▐▀▀▄  ▄█▀▄ 
@@ -68,8 +68,18 @@ printf "${CLEAR}${YELLOW}
 if [[ $(id -u) -ne 0 ]] ; then printf "\n${LRED} Please run as root${RESTORE}\n\n" ; exit 1 ; fi
 
 # dependencies
-_task "install dependencies"
+_task "update dependencies"
     _cmd 'apt-get install wget sed git -y'
+
+# description
+_task "update golang"
+    _cmd 'sudo rm -rf /usr/local/go'
+    _cmd 'wget -q -c https://dl.google.com/go/$(curl -s https://golang.org/VERSION?m=text).linux-amd64.tar.gz -O go.tar.gz'
+    _cmd 'tar -C /usr/local -xzf go.tar.gz'
+    _cmd 'echo "export GOROOT=/usr/local/go" >> /etc/profile'
+    _cmd 'echo "export PATH=/usr/local/go/bin:$PATH" >> /etc/profile'
+    _cmd 'source /etc/profile' 
+    _cmd 'rm go.tar.gz'
 
 # description
 _task "update system"
@@ -82,96 +92,22 @@ _task "update nameservers"
     _cmd 'echo "nameserver 1.0.0.1" | sudo tee -a /etc/resolv.conf'
 
 # description
-_task "update ntp server"
+_task "update ntp servers"
     _cmd 'truncate -s0 /etc/systemd/timesyncd.conf'
     _cmd 'echo "[Time]" | sudo tee -a /etc/systemd/timesyncd.conf'
     _cmd 'echo "NTP=time.cloudflare.com" | sudo tee -a /etc/systemd/timesyncd.conf'
     _cmd 'echo "FallbackNTP=ntp.ubuntu.com" | sudo tee -a /etc/systemd/timesyncd.conf'
 
 # description
-_task "disable ipv6 ufw"
-    _cmd 'sed -i "/ipv6=/Id" /etc/default/ufw'
-    _cmd 'echo "IPV6=no" | sudo tee -a /etc/default/ufw'
-
-# description
-_task "disable ipv6 grub"
-    _cmd 'sed -i "/GRUB_CMDLINE_LINUX_DEFAULT=/Id" /etc/default/grub'
-    _cmd 'echo "GRUB_CMDLINE_LINUX_DEFAULT=\"ipv6.disable=1 quiet splash\"" | sudo tee -a /etc/default/grub'
-
-# description
-_task "disable journal"
-    _cmd 'systemctl stop systemd-journald.service'
-    _cmd 'systemctl disable systemd-journald.service'
-    _cmd 'systemctl mask systemd-journald.service'
-
-# description
-_task "disable snapd"
-    _cmd 'systemctl stop snapd.service'
-    _cmd 'systemctl disable snapd.service'
-    _cmd 'systemctl mask snapd.service'
-
-# description
-_task "disable multipathd"
-    _cmd 'systemctl stop multipathd'
-    _cmd 'systemctl disable multipathd'
-    _cmd 'systemctl mask multipathd'
-
-# description
-_task "disable cron"
-    _cmd 'systemctl stop cron'
-    _cmd 'systemctl disable cron'
-    _cmd 'systemctl mask cron'
-
-# description
-_task "disable fwupd"
-    _cmd 'systemctl stop fwupd.service'
-    _cmd 'systemctl disable fwupd.service'
-    _cmd 'systemctl mask fwupd.service'
-
-# description
-_task "disable rsyslog"
-    _cmd 'systemctl stop rsyslog.service'
-    _cmd 'systemctl disable rsyslog.service'
-    _cmd 'systemctl mask rsyslog.service'
-
-# description
-_task "disable qemu-guest"
-    _cmd 'apt-get remove qemu-guest-agent -y'
-    _cmd 'apt-get remove --auto-remove qemu-guest-agent -y' 
-    _cmd 'apt-get purge qemu-guest-agent -y' 
-    _cmd 'apt-get purge --auto-remove qemu-guest-agent -y'
-
-# description
-_task "disable policykit"
-    _cmd 'apt-get remove policykit-1 -y'
-    _cmd 'apt-get autoremove policykit-1 -y' 
-    _cmd 'apt-get purge policykit-1 -y' 
-    _cmd 'apt-get autoremove --purge policykit-1 -y'
-
-# description
-_task "disable accountsservice"
-    _cmd 'service accounts-daemon stop'
-    _cmd 'apt remove accountsservice -y'
-
-# description
-_task "install golang"
-    _cmd 'wget -q -c https://dl.google.com/go/$(curl -s https://golang.org/VERSION?m=text).linux-amd64.tar.gz -O go.tar.gz'
-    _cmd 'tar -C /usr/local -xzf go.tar.gz'
-    _cmd 'echo "export GOROOT=/usr/local/go" >> /etc/profile'
-    _cmd 'echo "export PATH=/usr/local/go/bin:$PATH" >> /etc/profile'
-    _cmd 'source /etc/profile' 
-    _cmd 'rm go.tar.gz'
-
-# description
-_task "replace sysctl.conf"
+_task "update sysctl.conf"
     _cmd 'wget -q -c https://raw.githubusercontent.com/conduro/ubuntu/main/sysctl.conf -O /etc/sysctl.conf'
 
 # description
-_task "replace sshd_config"
+_task "update sshd_config"
     _cmd 'wget -q -c https://raw.githubusercontent.com/conduro/ubuntu/main/sshd.conf -O /etc/ssh/sshd_config'
 
 # firewall
-_task "configure firewall"
+_task "update firewall"
     _cmd 'ufw disable'
     _cmd 'echo "y" | sudo ufw reset'
     _cmd 'ufw logging off'
@@ -193,12 +129,71 @@ _task "configure firewall"
 
 
 # description
-_task "delete man"
-    _cmd 'rm -rf /usr/share/man/*'
+_task "disable ipv6"
+    _cmd 'sed -i "/ipv6=/Id" /etc/default/ufw'
+    _cmd 'echo "IPV6=no" | sudo tee -a /etc/default/ufw'
+    _cmd 'sed -i "/GRUB_CMDLINE_LINUX_DEFAULT=/Id" /etc/default/grub'
+    _cmd 'echo "GRUB_CMDLINE_LINUX_DEFAULT=\"ipv6.disable=1 quiet splash\"" | sudo tee -a /etc/default/grub'
+
+# description
+_task "disable system logging"
+    _cmd 'systemctl stop systemd-journald.service'
+    _cmd 'systemctl disable systemd-journald.service'
+    _cmd 'systemctl mask systemd-journald.service'
+
+    _cmd 'systemctl stop rsyslog.service'
+    _cmd 'systemctl disable rsyslog.service'
+    _cmd 'systemctl mask rsyslog.service'
+
+# # description
+# _task "disable snapd"
+#     _cmd 'systemctl stop snapd.service'
+#     _cmd 'systemctl disable snapd.service'
+#     _cmd 'systemctl mask snapd.service'
+
+# # description
+# _task "disable multipathd"
+#     _cmd 'systemctl stop multipathd'
+#     _cmd 'systemctl disable multipathd'
+#     _cmd 'systemctl mask multipathd'
+
+# # description
+# _task "disable cron"
+#     _cmd 'systemctl stop cron'
+#     _cmd 'systemctl disable cron'
+#     _cmd 'systemctl mask cron'
+
+# # description
+# _task "disable fwupd"
+#     _cmd 'systemctl stop fwupd.service'
+#     _cmd 'systemctl disable fwupd.service'
+#     _cmd 'systemctl mask fwupd.service'
+
+
+# # description
+# _task "disable qemu-guest"
+#     _cmd 'apt-get remove qemu-guest-agent -y'
+#     _cmd 'apt-get remove --auto-remove qemu-guest-agent -y' 
+#     _cmd 'apt-get purge qemu-guest-agent -y' 
+#     _cmd 'apt-get purge --auto-remove qemu-guest-agent -y'
+
+# # description
+# _task "disable policykit"
+#     _cmd 'apt-get remove policykit-1 -y'
+#     _cmd 'apt-get autoremove policykit-1 -y' 
+#     _cmd 'apt-get purge policykit-1 -y' 
+#     _cmd 'apt-get autoremove --purge policykit-1 -y'
+
+# # description
+# _task "disable accountsservice"
+#     _cmd 'service accounts-daemon stop'
+#     _cmd 'apt remove accountsservice -y'
+
 
 # description
 _task "delete system logs"
     _cmd 'find /var/log -type f -delete'
+    _cmd 'rm -rf /usr/share/man/*'
 
 # description
 _task "autoremove"
@@ -210,17 +205,8 @@ _task "autoremove"
 # description
 _task "reload system"
     _cmd 'sysctl -p'
-
-# description
-_task "reload grub"
     _cmd 'update-grub2'
-
-# description
-_task "reload timesync"
     _cmd 'systemctl restart systemd-timesyncd'
-
-# description
-_task "reload ssh"
     _cmd 'service ssh restart'
 
 # finish last task
