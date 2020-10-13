@@ -83,51 +83,20 @@ _task "update nameservers"
 
 # description
 _task "update ntp server"
-    _cmd 'sed -i "/NTP=/Id" /etc/systemd/timesyncd.conf'
+    _cmd 'truncate -s0 /etc/systemd/timesyncd.conf'
+    _cmd 'echo "[Time]" | sudo tee -a /etc/systemd/timesyncd.conf'
     _cmd 'echo "NTP=time.cloudflare.com" | sudo tee -a /etc/systemd/timesyncd.conf'
     _cmd 'echo "FallbackNTP=ntp.ubuntu.com" | sudo tee -a /etc/systemd/timesyncd.conf'
 
-
 # description
-_task "block syn attacks"
-    _cmd 'sed -i "/net.ipv4.tcp_max_syn_backlog/Id" /etc/sysctl.conf'
-    _cmd 'sed -i "/net.ipv4.tcp_synack_retries/Id" /etc/sysctl.conf'
-    _cmd 'sed -i "/net.ipv4.tcp_syn_retries/Id" /etc/sysctl.conf'
-    _cmd 'sed -i "/net.ipv4.tcp_syncookies/Id" /etc/sysctl.conf'
-    _cmd 'echo "net.ipv4.tcp_max_syn_backlog = 2048" | sudo tee -a /etc/sysctl.conf'
-    _cmd 'echo "net.ipv4.tcp_synack_retries = 2" | sudo tee -a /etc/sysctl.conf'
-    _cmd 'echo "net.ipv4.tcp_syn_retries = 5" | sudo tee -a /etc/sysctl.conf'
-    _cmd 'echo "net.ipv4.tcp_syncookies = 1" | sudo tee -a /etc/sysctl.conf'
-
-# description
-_task "hide kernel pointers"
-    _cmd 'sed -i "/kernel.kptr_restrict/Id" /etc/sysctl.conf'
-    _cmd 'echo "kernel.kptr_restrict=2" | sudo tee -a /etc/sysctl.conf'
-
-# description
-_task "disable empty ssh passwords"
-    _cmd 'sed -i "/PermitEmptyPasswords/Id" /etc/ssh/sshd_config'
-    _cmd 'echo "PermitEmptyPasswords no" | sudo tee -a /etc/ssh/sshd_config'
-
-# description
-_task "disable ipv6"
-    _cmd 'sed -i "/net.ipv6.conf.lo.disable_ipv6/Id" /etc/sysctl.conf'
-    _cmd 'sed -i "/net.ipv6.conf.all.disable_ipv6/Id" /etc/sysctl.conf'
-    _cmd 'sed -i "/net.ipv6.conf.default.disable_ipv6/Id" /etc/sysctl.conf'
-    _cmd 'echo "net.ipv6.conf.lo.disable_ipv6 = 1" | sudo tee -a /etc/sysctl.conf'
-    _cmd 'echo "net.ipv6.conf.all.disable_ipv6 = 1" | sudo tee -a /etc/sysctl.conf'
-    _cmd 'echo "net.ipv6.conf.default.disable_ipv6 = 1" | sudo tee -a /etc/sysctl.conf'
-
+_task "disable ipv6 ufw"
     _cmd 'sed -i "/ipv6=/Id" /etc/default/ufw'
     _cmd 'echo "IPV6=no" | sudo tee -a /etc/default/ufw'
 
+# description
+_task "disable ipv6 grub"
     _cmd 'sed -i "/GRUB_CMDLINE_LINUX_DEFAULT=/Id" /etc/default/grub'
     _cmd 'echo "GRUB_CMDLINE_LINUX_DEFAULT=\"ipv6.disable=1 quiet splash\"" | sudo tee -a /etc/default/grub'
-
-# description
-_task "disable icmp pings"
-    _cmd 'sed -i "/net.ipv4.icmp_echo_ignore_/Id" /etc/sysctl.conf'
-    _cmd 'echo "net.ipv4.icmp_echo_ignore_all = 1" | sudo tee -a /etc/sysctl.conf'
 
 # description
 _task "disable journal"
@@ -193,6 +162,14 @@ _task "install golang"
     _cmd 'source /etc/profile' 
     _cmd 'rm go.tar.gz'
 
+# description
+_task "replace sysctl.conf"
+    _cmd 'wget -q -c https://raw.githubusercontent.com/conduro/ubuntu/main/sysctl.conf -O /etc/sysctl.conf'
+
+# description
+_task "replace sshd_config"
+    _cmd 'wget -q -c https://raw.githubusercontent.com/conduro/ubuntu/main/sshd.conf -O /etc/ssh/sshd_config'
+
 # firewall
 _task "configure firewall"
     _cmd 'ufw disable'
@@ -206,7 +183,6 @@ _task "configure firewall"
     read -p "" prompt
     if [[ $prompt != "" ]]; then
         _cmd 'ufw allow ${prompt}/tcp "ssh"'
-        _cmd 'sed -i "/Port /Id" /etc/ssh/sshd_config'
         _cmd 'echo "Port ${prompt}" | sudo tee -a /etc/ssh/sshd_config'
         printf "${OVERWRITE}"
     else 
