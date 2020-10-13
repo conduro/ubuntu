@@ -200,17 +200,17 @@ _task "configure firewall"
     _cmd 'ufw logging off'
     _cmd 'ufw default deny incoming'
     _cmd 'ufw default allow outgoing'
-    _cmd 'ufw allow 80/tcp'
-    _cmd 'ufw allow 443/tcp'
+    _cmd 'ufw allow 80/tcp comment "http"'
+    _cmd 'ufw allow 443/tcp "https"'
     printf "${YELLOW} [?]  specify ssh port [leave empty for 22]: ${RESTORE}"
     read -p "" prompt
     if [[ $prompt != "" ]]; then
-        _cmd 'ufw allow ${prompt}/tcp'
+        _cmd 'ufw allow ${prompt}/tcp "ssh"'
         _cmd 'sed -i "/Port /Id" /etc/ssh/sshd_config'
         _cmd 'echo "Port ${prompt}" | sudo tee -a /etc/ssh/sshd_config'
         printf "${OVERWRITE}"
     else 
-        _cmd 'ufw allow 22/tcp'
+        _cmd 'ufw allow 22/tcp "ssh"'
         printf "${OVERWRITE}"
     fi
     _cmd 'ufw --force enable'
