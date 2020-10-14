@@ -193,12 +193,9 @@ _task "configure firewall"
 
 
 # description
-_task "delete system logs"
+_task "free disk space"
     _cmd 'find /var/log -type f -delete'
     _cmd 'rm -rf /usr/share/man/*'
-
-# description
-_task "autoremove"
     _cmd 'apt-get autoremove -y'
     _cmd 'apt-get autoclean -y'
     # _cmd "purge" 'apt-get remove --purge -y'
