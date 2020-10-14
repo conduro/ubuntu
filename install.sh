@@ -78,8 +78,8 @@ _task "update system"
 # description
 printf "${YELLOW} Do you want to install Go? [Y/n]: ${RESTORE}"
 read -p "" prompt
-printf "${OVERWRITE}"
 if [[ $prompt == "y" || $prompt == "Y" ]]; then
+    printf "${OVERWRITE}"
     _task "update golang"
         _cmd 'rm -rf /usr/local/go'
         _cmd 'wget -q -c https://dl.google.com/go/$(curl -s https://golang.org/VERSION?m=text).linux-amd64.tar.gz -O go.tar.gz'
