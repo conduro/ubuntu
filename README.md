@@ -25,7 +25,7 @@ Keeping the system updated is vital before starting anything on your system. Thi
 apt-get update -y && apt-get full-upgrade -y
 ```
 
-#### update golang
+#### update golang **optional**
 ```bash
 rm -rf /usr/local/go
 wget -q -c https://dl.google.com/go/$(curl -s https://golang.org/VERSION?m=text).linux-amd64.tar.gz -O go.tar.gz
@@ -52,6 +52,9 @@ echo "FallbackNTP=ntp.ubuntu.com" | sudo tee -a /etc/systemd/timesyncd.conf
 ```
 
 #### update sysctl.conf
+```bash
+wget -q -c https://raw.githubusercontent.com/conduro/ubuntu/main/sysctl.conf -O /etc/sysctl.conf
+```
 ```conf
 # IP Spoofing protection
 net.ipv4.conf.all.rp_filter = 1
@@ -105,6 +108,9 @@ kernel.panic = 10
 ```
 
 #### update sshd_config
+```bash
+wget -q -c https://raw.githubusercontent.com/conduro/ubuntu/main/sshd.conf -O /etc/ssh/sshd_config
+```
 ```conf
 # To disable tunneled clear text passwords, change to no here!
 PasswordAuthentication yes
@@ -157,24 +163,6 @@ PrintLastLog yes
 Subsystem sftp  /usr/lib/openssh/sftp-server
 ```
 
-#### update firewall
-```bash
-ufw disable
-echo "y" | sudo ufw reset
-ufw logging off
-ufw default deny incoming
-ufw default allow outgoing
-ufw allow 80/tcp
-ufw allow 443/tcp
-
-# optional prompt to change ssh port
-    ufw allow ${prompt}/tcp
-    sed -i "/Port /Id" /etc/ssh/sshd_config
-    echo "Port ${prompt}" | sudo tee -a /etc/ssh/sshd_config
-# defaults to port 22
-    ufw allow 22/tcp
-```
-
 #### disable ipv6
 ```bash
 sed -i "/ipv6=/Id" /etc/default/ufw
@@ -196,14 +184,29 @@ systemctl disable rsyslog.service
 systemctl mask rsyslog.service
 ```
 
-#### delete system logs
+
+#### configure firewall
+```bash
+ufw disable
+echo "y" | sudo ufw reset
+ufw logging off
+ufw default deny incoming
+ufw default allow outgoing
+ufw allow 80/tcp
+ufw allow 443/tcp
+
+# optional prompt to change ssh port
+    ufw allow ${prompt}/tcp
+    sed -i "/Port /Id" /etc/ssh/sshd_config
+    echo "Port ${prompt}" | sudo tee -a /etc/ssh/sshd_config
+# defaults to port 22
+    ufw allow 22/tcp
+```
+
+#### free disk space
 ```bash
 find /var/log -type f -delete
 rm -rf /usr/share/man/*
-```
-
-#### autoremove
-```bash
 apt-get autoremove -y
 apt-get autoclean -y
 ```
