@@ -85,12 +85,10 @@ printf "${OVERWRITE}${LGREEN} [✓]  ${LGREEN}${TASK}\n"
 
 # description
 printf "      ${YELLOW}Do you want to install Go? [Y/n]: ${RESTORE}"
-read prompt
-printf "${OVERWRITE}"
-if [[ $prompt == "y" || $prompt == "Y" ]]; then
+read prompt && printf "${OVERWRITE}" && if [[ $prompt == "y" || $prompt == "Y" ]]; then
     _task "update golang"
         _cmd 'rm -rf /usr/local/go'
-        _cmd 'wget -q -c https://dl.google.com/go/$(curl -s https://golang.org/VERSION?m=text).linux-amd64.tar.gz -O go.tar.gz'
+        _cmd 'wget --timeout=5 --tries=2 --quiet -c https://dl.google.com/go/$(curl -s https://golang.org/VERSION?m=text).linux-amd64.tar.gz -O go.tar.gz'
         _cmd 'tar -C /usr/local -xzf go.tar.gz'
         _cmd 'echo "export GOROOT=/usr/local/go" >> /etc/profile'
         _cmd 'echo "export PATH=/usr/local/go/bin:$PATH" >> /etc/profile'
@@ -114,11 +112,11 @@ _task "update ntp servers"
 # description
 _task "update sysctl.conf"
 wget -c https://raw.githubusercontent.com/conduro/ubuntu/main/sysctl.conf -O /etc/sysctl.conf
-    _cmd 'wget -q -c https://raw.githubusercontent.com/conduro/ubuntu/main/sysctl.conf -O /etc/sysctl.conf'
+    _cmd 'wget --timeout=5 --tries=2 --quiet -c https://raw.githubusercontent.com/conduro/ubuntu/main/sysctl.conf -O /etc/sysctl.conf'
 
 # description
 _task "update sshd_config"
-    _cmd 'wget -q -c https://raw.githubusercontent.com/conduro/ubuntu/main/sshd.conf -O /etc/ssh/sshd_config'
+    _cmd 'wget --timeout=5 --tries=2 --quiet -c https://raw.githubusercontent.com/conduro/ubuntu/main/sshd.conf -O /etc/ssh/sshd_config'
 
 # description
 _task "disable system logging"
@@ -184,8 +182,7 @@ _task "configure firewall"
     _cmd 'ufw allow 80/tcp comment "http"'
     _cmd 'ufw allow 443/tcp comment "https"'
     printf "${YELLOW} [?]  specify ssh port [leave empty for 22]: ${RESTORE}"
-    read prompt
-    if [[ $prompt != "" ]]; then
+    read prompt && printf "${OVERWRITE}" && if [[ $prompt != "" ]]; then
         _cmd 'ufw allow ${prompt}/tcp comment "ssh"'
         _cmd 'echo "Port ${prompt}" | sudo tee -a /etc/ssh/sshd_config'
     else 
@@ -195,7 +192,6 @@ _task "configure firewall"
     _cmd 'echo "IPV6=no" | sudo tee -a /etc/default/ufw'
     _cmd 'sed -i "/GRUB_CMDLINE_LINUX_DEFAULT=/Id" /etc/default/grub'
     _cmd 'echo "GRUB_CMDLINE_LINUX_DEFAULT=\"ipv6.disable=1 quiet splash\"" | sudo tee -a /etc/default/grub'
-    printf "${OVERWRITE}"
 
 
 # description
@@ -221,13 +217,11 @@ printf "${OVERWRITE}${LGREEN} [✓]  ${LGREEN}${TASK}\n"
 # remove conduro.log
 rm conduro.log
 
-
 # reboot
 printf "\n${YELLOW} Do you want to reboot [Y/n]? ${RESTORE}"
-read -p "" prompt
-if [[ $prompt == "y" || $prompt == "Y" ]]; then
+read prompt && printf "${OVERWRITE}" && if [[ $prompt == "y" || $prompt == "Y" ]]; then
     reboot
 fi
 
 # exit
-exit
+exit 1
