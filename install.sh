@@ -114,13 +114,6 @@ _task "update sshd_config"
     _cmd 'wget -q -c https://raw.githubusercontent.com/conduro/ubuntu/main/sshd.conf -O /etc/ssh/sshd_config'
 
 # description
-_task "disable ipv6"
-    _cmd 'sed -i "/ipv6=/Id" /etc/default/ufw'
-    _cmd 'echo "IPV6=no" | sudo tee -a /etc/default/ufw'
-    _cmd 'sed -i "/GRUB_CMDLINE_LINUX_DEFAULT=/Id" /etc/default/grub'
-    _cmd 'echo "GRUB_CMDLINE_LINUX_DEFAULT=\"ipv6.disable=1 quiet splash\"" | sudo tee -a /etc/default/grub'
-
-# description
 _task "disable system logging"
     _cmd 'systemctl stop systemd-journald.service'
     _cmd 'systemctl disable systemd-journald.service'
@@ -130,11 +123,11 @@ _task "disable system logging"
     _cmd 'systemctl disable rsyslog.service'
     _cmd 'systemctl mask rsyslog.service'
 
-# # description
-# _task "disable snapd"
-#     _cmd 'systemctl stop snapd.service'
-#     _cmd 'systemctl disable snapd.service'
-#     _cmd 'systemctl mask snapd.service'
+# description
+_task "disable snapd"
+    _cmd 'systemctl stop snapd.service'
+    _cmd 'systemctl disable snapd.service'
+    _cmd 'systemctl mask snapd.service'
 
 # # description
 # _task "disable multipathd"
@@ -191,6 +184,10 @@ _task "configure firewall"
     else 
         _cmd 'ufw allow 22/tcp comment "ssh"'
     fi
+    _cmd 'sed -i "/ipv6=/Id" /etc/default/ufw'
+    _cmd 'echo "IPV6=no" | sudo tee -a /etc/default/ufw'
+    _cmd 'sed -i "/GRUB_CMDLINE_LINUX_DEFAULT=/Id" /etc/default/grub'
+    _cmd 'echo "GRUB_CMDLINE_LINUX_DEFAULT=\"ipv6.disable=1 quiet splash\"" | sudo tee -a /etc/default/grub'
     printf "${OVERWRITE}"
 
 
