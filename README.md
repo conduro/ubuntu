@@ -173,8 +173,6 @@ ufw allow 443/tcp
     echo "Port ${prompt}" | sudo tee -a /etc/ssh/sshd_config
 # defaults to port 22
     ufw allow 22/tcp
-
-ufw --force enable
 ```
 
 #### disable ipv6
@@ -215,5 +213,6 @@ apt-get autoclean -y
 sysctl -p
 update-grub2
 systemctl restart systemd-timesyncd
+ufw --force enable
 service ssh restart
 ```
