@@ -9,7 +9,7 @@ This script is designed to be executed on a freshly installed **Ubuntu Server 20
 ```bash
 wget -O ./install.sh https://condu.ro/install.sh && chmod +x ./install.sh && sudo ./install.sh
 ```
-![](https://i.imgur.com/RvdJQjU.gif)
+![](https://i.imgur.com/PXK7Ctk.gif)
 
 # What does it do?
 The purpose of Conduro is to optimize and secure your system to run web applications. It does this by disabling unnecessary services, bootstrapping your firewall, secure your system settings and other things. Continue reading if you want to know exactly what's being executed.
@@ -163,15 +163,6 @@ PrintLastLog yes
 Subsystem sftp  /usr/lib/openssh/sftp-server
 ```
 
-#### disable ipv6
-```bash
-sed -i "/ipv6=/Id" /etc/default/ufw
-echo "IPV6=no" | sudo tee -a /etc/default/ufw
-
-sed -i "/GRUB_CMDLINE_LINUX_DEFAULT=/Id" /etc/default/grub
-echo "GRUB_CMDLINE_LINUX_DEFAULT=\"ipv6.disable=1 quiet splash\"" | sudo tee -a /etc/default/grub
-```
-
 
 #### disable system logging
 ```bash
@@ -201,6 +192,12 @@ ufw allow 443/tcp
     echo "Port ${prompt}" | sudo tee -a /etc/ssh/sshd_config
 # defaults to port 22
     ufw allow 22/tcp
+
+sed -i "/ipv6=/Id" /etc/default/ufw
+echo "IPV6=no" | sudo tee -a /etc/default/ufw
+
+sed -i "/GRUB_CMDLINE_LINUX_DEFAULT=/Id" /etc/default/grub
+echo "GRUB_CMDLINE_LINUX_DEFAULT=\"ipv6.disable=1 quiet splash\"" | sudo tee -a /etc/default/grub
 ```
 
 #### free disk space
