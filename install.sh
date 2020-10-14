@@ -88,6 +88,8 @@ if [[ $prompt == "y" || $prompt == "Y" ]]; then
         _cmd 'echo "export PATH=/usr/local/go/bin:$PATH" >> /etc/profile'
         _cmd 'source /etc/profile' 
         _cmd 'rm go.tar.gz'
+else
+    printf "${OVERWRITE}"
 fi
 
 # description
