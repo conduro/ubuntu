@@ -173,7 +173,7 @@ _task "disable system logging"
 #     _cmd 'apt remove accountsservice -y'
 
 # firewall
-_task "update firewall"
+_task "configure firewall"
     ufw disable
     echo "y" | sudo ufw reset
     ufw logging off
