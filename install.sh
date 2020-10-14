@@ -76,10 +76,10 @@ _task "update system"
     _cmd 'apt-get update -y && apt-get full-upgrade -y'
 
 # description
-printf "\n${YELLOW} Do you want to install Go? [Y/n]: ${RESTORE}"
+printf "${YELLOW} Do you want to install Go? [Y/n]: ${RESTORE}"
 read -p "" prompt
+printf "${OVERWRITE}"
 if [[ $prompt == "y" || $prompt == "Y" ]]; then
-    printf "${OVERWRITE}"
     _task "update golang"
         _cmd 'rm -rf /usr/local/go'
         _cmd 'wget -q -c https://dl.google.com/go/$(curl -s https://golang.org/VERSION?m=text).linux-amd64.tar.gz -O go.tar.gz'
@@ -174,40 +174,22 @@ _task "disable system logging"
 
 # firewall
 _task "configure firewall"
-    ufw disable
-    echo "y" | sudo ufw reset
-    ufw logging off
-    ufw default deny incoming
-    ufw default allow outgoing
-    ufw allow 80/tcp comment "http"
-    ufw allow 443/tcp comment "https"
+    _cmd 'ufw disable'
+    _cmd 'echo "y" | sudo ufw reset'
+    _cmd 'ufw logging off'
+    _cmd 'ufw default deny incoming'
+    _cmd 'ufw default allow outgoing'
+    _cmd 'ufw allow 80/tcp comment "http"'
+    _cmd 'ufw allow 443/tcp comment "https"'
     printf "${YELLOW} [?]  specify ssh port [leave empty for 22]: ${RESTORE}"
     read -p "" prompt
     if [[ $prompt != "" ]]; then
-        ufw allow ${prompt}/tcp comment "ssh"
-        echo "Port ${prompt}" | sudo tee -a /etc/ssh/sshd_config
-        printf "${OVERWRITE}"
+        _cmd 'ufw allow ${prompt}/tcp comment "ssh"'
+        _cmd 'echo "Port ${prompt}" | sudo tee -a /etc/ssh/sshd_config'
     else 
-        ufw allow 22/tcp comment "ssh"
-        printf "${OVERWRITE}"
+        _cmd 'ufw allow 22/tcp comment "ssh"'
     fi
-    # _cmd 'ufw disable'
-    # _cmd 'echo "y" | sudo ufw reset'
-    # _cmd 'ufw logging off'
-    # _cmd 'ufw default deny incoming'
-    # _cmd 'ufw default allow outgoing'
-    # _cmd 'ufw allow 80/tcp comment "http"'
-    # _cmd 'ufw allow 443/tcp "https"'
-    # printf "${YELLOW} [?]  specify ssh port [leave empty for 22]: ${RESTORE}"
-    # read -p "" prompt
-    # if [[ $prompt != "" ]]; then
-    #     _cmd 'ufw allow ${prompt}/tcp "ssh"'
-    #     _cmd 'echo "Port ${prompt}" | sudo tee -a /etc/ssh/sshd_config'
-    #     printf "${OVERWRITE}"
-    # else 
-    #     _cmd 'ufw allow 22/tcp "ssh"'
-    #     printf "${OVERWRITE}"
-    # fi
+    printf "${OVERWRITE}"
 
 
 # description
