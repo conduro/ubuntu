@@ -125,7 +125,6 @@ _task "update firewall"
         _cmd 'ufw allow 22/tcp "ssh"'
         printf "${OVERWRITE}"
     fi
-    _cmd 'ufw --force enable'
 
 
 # description
@@ -207,6 +206,7 @@ _task "reload system"
     _cmd 'sysctl -p'
     _cmd 'update-grub2'
     _cmd 'systemctl restart systemd-timesyncd'
+    _cmd 'ufw --force enable'
     _cmd 'service ssh restart'
 
 # finish last task
