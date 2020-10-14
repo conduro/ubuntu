@@ -133,44 +133,6 @@ _task "disable snapd"
     _cmd 'systemctl disable snapd.service'
     _cmd 'systemctl mask snapd.service'
 
-# # description
-# _task "disable multipathd"
-#     _cmd 'systemctl stop multipathd'
-#     _cmd 'systemctl disable multipathd'
-#     _cmd 'systemctl mask multipathd'
-
-# # description
-# _task "disable cron"
-#     _cmd 'systemctl stop cron'
-#     _cmd 'systemctl disable cron'
-#     _cmd 'systemctl mask cron'
-
-# # description
-# _task "disable fwupd"
-#     _cmd 'systemctl stop fwupd.service'
-#     _cmd 'systemctl disable fwupd.service'
-#     _cmd 'systemctl mask fwupd.service'
-
-
-# # description
-# _task "disable qemu-guest"
-#     _cmd 'apt-get remove qemu-guest-agent -y'
-#     _cmd 'apt-get remove --auto-remove qemu-guest-agent -y' 
-#     _cmd 'apt-get purge qemu-guest-agent -y' 
-#     _cmd 'apt-get purge --auto-remove qemu-guest-agent -y'
-
-# # description
-# _task "disable policykit"
-#     _cmd 'apt-get remove policykit-1 -y'
-#     _cmd 'apt-get autoremove policykit-1 -y' 
-#     _cmd 'apt-get purge policykit-1 -y' 
-#     _cmd 'apt-get autoremove --purge policykit-1 -y'
-
-# # description
-# _task "disable accountsservice"
-#     _cmd 'service accounts-daemon stop'
-#     _cmd 'apt remove accountsservice -y'
-
 # firewall
 _task "configure firewall"
     _cmd 'ufw disable'
@@ -224,3 +186,42 @@ fi
 
 # exit
 exit 1
+
+# # description
+# _task "disable multipathd"
+#     _cmd 'systemctl stop multipathd'
+#     _cmd 'systemctl disable multipathd'
+#     _cmd 'systemctl mask multipathd'
+
+# # description
+# _task "disable cron"
+#     _cmd 'systemctl stop cron'
+#     _cmd 'systemctl disable cron'
+#     _cmd 'systemctl mask cron'
+
+# # description
+# _task "disable fwupd"
+#     _cmd 'systemctl stop fwupd.service'
+#     _cmd 'systemctl disable fwupd.service'
+#     _cmd 'systemctl mask fwupd.service'
+
+
+# # description
+# _task "disable qemu-guest"
+#     _cmd 'apt-get remove qemu-guest-agent -y'
+#     _cmd 'apt-get remove --auto-remove qemu-guest-agent -y' 
+#     _cmd 'apt-get purge qemu-guest-agent -y' 
+#     _cmd 'apt-get purge --auto-remove qemu-guest-agent -y'
+
+# # description
+# _task "disable policykit"
+#     _cmd 'apt-get remove policykit-1 -y'
+#     _cmd 'apt-get autoremove policykit-1 -y' 
+#     _cmd 'apt-get purge policykit-1 -y' 
+#     _cmd 'apt-get autoremove --purge policykit-1 -y'
+
+# # description
+# _task "disable accountsservice"
+#     _cmd 'service accounts-daemon stop'
+#     _cmd 'apt remove accountsservice -y'
+
