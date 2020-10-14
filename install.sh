@@ -76,14 +76,19 @@ _task "update system"
     _cmd 'apt-get update -y && apt-get full-upgrade -y'
 
 # description
-_task "update golang"
-    _cmd 'rm -rf /usr/local/go'
-    _cmd 'wget -q -c https://dl.google.com/go/$(curl -s https://golang.org/VERSION?m=text).linux-amd64.tar.gz -O go.tar.gz'
-    _cmd 'tar -C /usr/local -xzf go.tar.gz'
-    _cmd 'echo "export GOROOT=/usr/local/go" >> /etc/profile'
-    _cmd 'echo "export PATH=/usr/local/go/bin:$PATH" >> /etc/profile'
-    _cmd 'source /etc/profile' 
-    _cmd 'rm go.tar.gz'
+printf "\n${YELLOW} Do you want to install Go? [Y/n]: ${RESTORE}"
+read -p "" prompt
+if [[ $prompt == "y" || $prompt == "Y" ]]; then
+    printf "${OVERWRITE}"
+    _task "update golang"
+        _cmd 'rm -rf /usr/local/go'
+        _cmd 'wget -q -c https://dl.google.com/go/$(curl -s https://golang.org/VERSION?m=text).linux-amd64.tar.gz -O go.tar.gz'
+        _cmd 'tar -C /usr/local -xzf go.tar.gz'
+        _cmd 'echo "export GOROOT=/usr/local/go" >> /etc/profile'
+        _cmd 'echo "export PATH=/usr/local/go/bin:$PATH" >> /etc/profile'
+        _cmd 'source /etc/profile' 
+        _cmd 'rm go.tar.gz'
+fi
 
 # description
 _task "update nameservers"
