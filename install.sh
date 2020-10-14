@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# echo -n "Is this a good question (y/n)? "
+# read answer
+# printf "${answer}"
+
+
 # color codes
 RESTORE='\033[0m'
 BLACK='\033[00;30m'
@@ -75,11 +80,14 @@ _task "update dependencies"
 _task "update system"
     _cmd 'apt-get update -y && apt-get full-upgrade -y'
 
+# finish last task
+printf "${OVERWRITE}${LGREEN} [✓]  ${LGREEN}${TASK}\n"
+
 # description
-printf "${YELLOW} Do you want to install Go? [Y/n]: ${RESTORE}"
-read -p "" prompt
+printf "      ${YELLOW}Do you want to install Go? [Y/n]: ${RESTORE}"
+read prompt
+printf "${OVERWRITE}"
 if [[ $prompt == "y" || $prompt == "Y" ]]; then
-    printf "${OVERWRITE}"
     _task "update golang"
         _cmd 'rm -rf /usr/local/go'
         _cmd 'wget -q -c https://dl.google.com/go/$(curl -s https://golang.org/VERSION?m=text).linux-amd64.tar.gz -O go.tar.gz'
@@ -88,8 +96,6 @@ if [[ $prompt == "y" || $prompt == "Y" ]]; then
         _cmd 'echo "export PATH=/usr/local/go/bin:$PATH" >> /etc/profile'
         _cmd 'source /etc/profile' 
         _cmd 'rm go.tar.gz'
-else
-    printf "${OVERWRITE}"
 fi
 
 # description
@@ -107,6 +113,7 @@ _task "update ntp servers"
 
 # description
 _task "update sysctl.conf"
+wget -c https://raw.githubusercontent.com/conduro/ubuntu/main/sysctl.conf -O /etc/sysctl.conf
     _cmd 'wget -q -c https://raw.githubusercontent.com/conduro/ubuntu/main/sysctl.conf -O /etc/sysctl.conf'
 
 # description
@@ -177,7 +184,7 @@ _task "configure firewall"
     _cmd 'ufw allow 80/tcp comment "http"'
     _cmd 'ufw allow 443/tcp comment "https"'
     printf "${YELLOW} [?]  specify ssh port [leave empty for 22]: ${RESTORE}"
-    read -p "" prompt
+    read prompt
     if [[ $prompt != "" ]]; then
         _cmd 'ufw allow ${prompt}/tcp comment "ssh"'
         _cmd 'echo "Port ${prompt}" | sudo tee -a /etc/ssh/sshd_config'
